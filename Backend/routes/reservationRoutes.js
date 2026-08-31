@@ -6,7 +6,7 @@ const {
   getReservation,
   deleteReservation,
 } = require("../controllers/reservationController");
-const { protect } = require("../middleware/auth");
+const { protect } = require("../middleware/authmiddleware");
 
 const router = express.Router();
 

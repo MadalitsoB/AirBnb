@@ -1,14 +1,12 @@
 const User = require("../models/user");
-const { generateToken } = require("../middleware/auth");
+const { generateToken } = require("../middleware/authmiddleware");
 
-// @desc    Register user
-// @route   POST /api/users/register
-// @access  Public
+const getDemoUsers = () => global.demoUsers || [];
+
 exports.register = async (req, res) => {
   try {
     const { username, email, password, role } = req.body;
 
-    // Validate input
     if (!username || !email || !password) {
       return res.status(400).json({
         success: false,
@@ -16,34 +14,40 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Check if user already exists
-    let user = await User.findOne({ $or: [{ email }, { username }] });
-    if (user) {
+    const users = getDemoUsers();
+    const existing = users.find(
+      (user) => user.email === email || user.username === username,
+    );
+
+    if (existing) {
       return res.status(400).json({
         success: false,
         message: "User already exists with that email or username",
       });
     }
 
-    // Create user (password will be hashed automatically by model)
-    user = await User.create({
+    const id = String(Date.now());
+    const newUser = {
+      _id: id,
       username,
       email,
       password,
-      role: role || "user", // Default to 'user' if not specified
-    });
+      role: role || "user",
+    };
 
-    // Generate JWT token
-    const token = generateToken(user._id);
+    users.push(newUser);
+    global.demoUsers = users;
+
+    const token = generateToken(id);
 
     res.status(201).json({
       success: true,
       token,
       user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
+        id,
+        username,
+        email,
+        role: newUser.role,
       },
     });
   } catch (error) {
@@ -54,14 +58,10 @@ exports.register = async (req, res) => {
   }
 };
 
-// @desc    Login user
-// @route   POST /api/users/login
-// @access  Public
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validate input
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -69,27 +69,15 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Check for user in database (include password field for comparison)
-    const user = await User.findOne({ email }).select("+password");
+    const user = getDemoUsers().find((item) => item.email === email);
 
-    if (!user) {
+    if (!user || user.password !== password) {
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
       });
     }
 
-    // Check if password matches using model method
-    const isMatch = await user.matchPassword(password);
-
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
-    }
-
-    // Generate JWT token
     const token = generateToken(user._id);
 
     res.status(200).json({
@@ -110,12 +98,9 @@ exports.login = async (req, res) => {
   }
 };
 
-// @desc    Get current logged in user
-// @route   GET /api/users/me
-// @access  Private
 exports.getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = getDemoUsers().find((item) => item._id === req.user.id);
 
     if (!user) {
       return res.status(404).json({
@@ -126,7 +111,12 @@ exports.getMe = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: user,
+      data: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (error) {
     res.status(500).json({

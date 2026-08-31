@@ -1,20 +1,15 @@
 const jwt = require("jsonwebtoken");
 
-// @desc    Protect routes - verify JWT token
-// @access  Private
 const protect = (req, res, next) => {
   let token;
 
-  // Check if token exists in headers
   if (
     req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
+    req.headers.authorization.startsWith("Bearer ")
   ) {
-    // Extract token from "Bearer token123"
     token = req.headers.authorization.split(" ")[1];
   }
 
-  // Make sure token exists
   if (!token) {
     return res.status(401).json({
       success: false,
@@ -23,12 +18,8 @@ const protect = (req, res, next) => {
   }
 
   try {
-    // Verify token and decode it
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Attach user id to request object for use in controllers
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "secretkey");
     req.user = decoded;
-
     next();
   } catch (error) {
     return res.status(401).json({
@@ -38,11 +29,8 @@ const protect = (req, res, next) => {
   }
 };
 
-// @desc    Generate JWT Token
-// @param   id - User ID to encode in token
-// @return  JWT token string
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+  return jwt.sign({ id }, process.env.JWT_SECRET || "secretkey", {
     expiresIn: process.env.JWT_EXPIRE || "7d",
   });
 };

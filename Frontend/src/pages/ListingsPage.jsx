@@ -1,0 +1,201 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import Navbar from "../components/Navbar";
+
+const CATEGORIES = [
+  { label: "Amazing views", icon: "🏔️" },
+  { label: "Beachfront", icon: "🏖️" },
+  { label: "Cabins", icon: "🏕️" },
+  { label: "Trending", icon: "🔥" },
+  { label: "Pools", icon: "🏊" },
+  { label: "Tiny homes", icon: "🏠" },
+  { label: "Mansions", icon: "🏰" },
+  { label: "Lakefront", icon: "🏞️" },
+  { label: "Skiing", icon: "⛷️" },
+  { label: "Farms", icon: "🌾" },
+];
+
+const FALLBACK = [
+  {
+    _id: "1",
+    title: "Cozy Mountain Cabin",
+    location: "Cape Town, South Africa",
+    type: "Entire cabin",
+    price: 1250,
+    rating: 4.92,
+    reviewCount: 128,
+    images: ["https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=800&q=80"],
+  },
+  {
+    _id: "2",
+    title: "Modern City Apartment",
+    location: "Johannesburg, South Africa",
+    type: "Entire apartment",
+    price: 980,
+    rating: 4.85,
+    reviewCount: 94,
+    images: ["https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80"],
+  },
+  {
+    _id: "3",
+    title: "Beachfront Villa",
+    location: "Durban, South Africa",
+    type: "Entire villa",
+    price: 2500,
+    rating: 4.97,
+    reviewCount: 211,
+    images: ["https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80"],
+  },
+  {
+    _id: "4",
+    title: "Rustic Farm Stay",
+    location: "Stellenbosch, South Africa",
+    type: "Private room",
+    price: 750,
+    rating: 4.78,
+    reviewCount: 67,
+    images: ["https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80"],
+  },
+  {
+    _id: "5",
+    title: "Luxury Penthouse",
+    location: "Cape Town, South Africa",
+    type: "Entire apartment",
+    price: 3800,
+    rating: 4.99,
+    reviewCount: 45,
+    images: ["https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80"],
+  },
+  {
+    _id: "6",
+    title: "Lakeside Retreat",
+    location: "Knysna, South Africa",
+    type: "Entire cabin",
+    price: 1600,
+    rating: 4.91,
+    reviewCount: 183,
+    images: ["https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=800&q=80"],
+  },
+];
+
+function ListingsPage() {
+  const [listings, setListings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState(0);
+  const [showTotal, setShowTotal] = useState(false);
+
+  useEffect(() => {
+    fetch("http://localhost:5000/api/accommodations")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.data.length > 0) setListings(data.data);
+        else setListings(FALLBACK);
+      })
+      .catch(() => setListings(FALLBACK))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <div className="listings-page">
+      <Navbar />
+
+      {/* Category chips */}
+      <div className="category-bar">
+        <div className="category-bar__chips">
+          {CATEGORIES.map((cat, i) => (
+            <button
+              key={cat.label}
+              className={`category-chip ${i === activeCategory ? "category-chip--active" : ""}`}
+              onClick={() => setActiveCategory(i)}
+            >
+              <span className="category-chip__icon">{cat.icon}</span>
+              <span className="category-chip__label">{cat.label}</span>
+            </button>
+          ))}
+        </div>
+        <div className="category-bar__filters">
+          <button className="filter-btn">
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M1 3h14M4 8h8M7 13h2" strokeLinecap="round" />
+            </svg>
+            Filters
+          </button>
+          <button
+            className={`total-btn ${showTotal ? "total-btn--active" : ""}`}
+            onClick={() => setShowTotal(!showTotal)}
+          >
+            Display total before taxes
+          </button>
+        </div>
+      </div>
+
+      {/* Grid */}
+      <main className="listings-grid-wrap">
+        {loading ? (
+          <div className="listings-loading">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="listing-skeleton">
+                <div className="listing-skeleton__img" />
+                <div className="listing-skeleton__line listing-skeleton__line--long" />
+                <div className="listing-skeleton__line listing-skeleton__line--short" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="listings-grid">
+            {listings.map((item) => (
+              <Link
+                to={`/listings/${item._id}`}
+                key={item._id}
+                className="listing-card-link"
+              >
+                <article className="listing-card">
+                  <div className="listing-card__img-wrap">
+                    <img
+                      src={item.images?.[0] || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80"}
+                      alt={item.title}
+                      className="listing-card__img"
+                    />
+                    <button className="listing-card__heart" aria-label="Save to wishlist">
+                      <svg viewBox="0 0 32 32" width="18" height="18" fill="none" stroke="white" strokeWidth="2">
+                        <path d="M16 28S4 20 4 11a7 7 0 0 1 12-4.9A7 7 0 0 1 28 11c0 9-12 17-12 17z" />
+                      </svg>
+                    </button>
+                    <div className="listing-card__dots">
+                      <span className="listing-card__dot listing-card__dot--active" />
+                      <span className="listing-card__dot" />
+                      <span className="listing-card__dot" />
+                    </div>
+                  </div>
+                  <div className="listing-card__body">
+                    <div className="listing-card__row">
+                      <span className="listing-card__title">{item.title}</span>
+                      <span className="listing-card__rating">
+                        <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M8 1l1.85 3.75L14 5.5l-3 2.92.71 4.13L8 10.4l-3.71 1.95.71-4.13L2 5.5l4.15-.75L8 1z"/></svg>
+                        {item.rating || "4.9"}
+                      </span>
+                    </div>
+                    <p className="listing-card__location">{item.location}</p>
+                    <p className="listing-card__type">{item.type}</p>
+                    <p className="listing-card__price">
+                      <strong>R{item.price?.toLocaleString()}</strong> night
+                    </p>
+                  </div>
+                </article>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        <div className="listings-map-btn-wrap">
+          <button className="listings-map-btn">
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 0a5 5 0 0 0-5 5c0 4.5 5 11 5 11s5-6.5 5-11a5 5 0 0 0-5-5zm0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg>
+            Show map
+          </button>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default ListingsPage;
