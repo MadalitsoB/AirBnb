@@ -14,6 +14,21 @@ const AMENITIES = [
   { icon: "🏋️", label: "Gym" },
 ];
 
+const ALL_AMENITIES = [
+  ...AMENITIES,
+  { icon: "🔥", label: "Indoor fireplace" },
+  { icon: "🌿", label: "Private garden" },
+  { icon: "🧺", label: "Washing machine" },
+  { icon: "📺", label: "Smart TV" },
+  { icon: "🧴", label: "Essentials" },
+  { icon: "🛏️", label: "Bed linens" },
+  { icon: "🚿", label: "Hot water" },
+  { icon: "🔒", label: "Self check-in" },
+  { icon: "🌅", label: "Outdoor dining" },
+  { icon: "🧯", label: "Smoke alarm" },
+  { icon: "🧳", label: "Luggage drop-off" },
+];
+
 const REVIEWS = [
   {
     name: "Sarah M.",
@@ -54,6 +69,8 @@ function ListingDetailsPage() {
   const [customImages, setCustomImages] = useState([]);
   const [photoDraft, setPhotoDraft] = useState("");
   const [photoError, setPhotoError] = useState("");
+  const [showAllAmenities, setShowAllAmenities] = useState(false);
+  const [reservationMessage, setReservationMessage] = useState("");
 
   useEffect(() => {
     apiFetch(`/accommodations/${id}`)
@@ -168,6 +185,31 @@ function ListingDetailsPage() {
   const serviceFee = 1050;
   const total = subtotal + cleaningFee + serviceFee;
 
+  const jumpToReviews = (event) => {
+    event.preventDefault();
+    document.getElementById("reviews")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+    document.getElementById("reviews")?.focus({ preventScroll: true });
+  };
+
+  const handleReserve = () => {
+    if (!checkIn || !checkOut) {
+      setReservationMessage("Choose your check-in and checkout dates first.");
+      return;
+    }
+
+    if (new Date(checkOut) <= new Date(checkIn)) {
+      setReservationMessage("Checkout must be after check-in.");
+      return;
+    }
+
+    setReservationMessage(
+      `Your request for ${guests} guest${guests === 1 ? "" : "s"} is ready to confirm.`,
+    );
+  };
+
   return (
     <div className="detail-page">
       <Navbar />
@@ -188,7 +230,11 @@ function ListingDetailsPage() {
               </svg>
               <strong>{item.rating || 4.97}</strong>
               <span className="detail-header__dot">·</span>
-              <a href="#reviews" className="detail-header__reviews">
+              <a
+                href="#reviews"
+                className="detail-header__reviews"
+                onClick={jumpToReviews}
+              >
                 {item.reviewCount || 211} reviews
               </a>
               <span className="detail-header__dot">·</span>
@@ -364,6 +410,37 @@ function ListingDetailsPage() {
           </div>
         )}
 
+        {showAllAmenities && (
+          <div
+            className="detail-gallery-modal"
+            onClick={() => setShowAllAmenities(false)}
+          >
+            <div
+              className="detail-gallery-modal__panel amenities-modal"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="detail-gallery-modal__header">
+                <h3>What this place offers</h3>
+                <button
+                  type="button"
+                  className="detail-gallery-modal__close"
+                  onClick={() => setShowAllAmenities(false)}
+                >
+                  Close
+                </button>
+              </div>
+              <div className="amenities-modal__grid">
+                {ALL_AMENITIES.map((amenity) => (
+                  <div key={amenity.label} className="amenity-item">
+                    <span className="amenity-item__icon">{amenity.icon}</span>
+                    <span>{amenity.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Body */}
         <div className="detail-body">
           {/* Left column */}
@@ -441,7 +518,11 @@ function ListingDetailsPage() {
                   </div>
                 ))}
               </div>
-              <button className="detail-show-all-btn">
+              <button
+                type="button"
+                className="detail-show-all-btn"
+                onClick={() => setShowAllAmenities(true)}
+              >
                 Show all 20 amenities
               </button>
             </div>
@@ -449,7 +530,7 @@ function ListingDetailsPage() {
             <hr className="detail-divider" />
 
             {/* Reviews */}
-            <div className="detail-reviews" id="reviews">
+            <div className="detail-reviews" id="reviews" tabIndex="-1">
               <div className="detail-reviews__header">
                 <svg
                   viewBox="0 0 16 16"
@@ -565,7 +646,18 @@ function ListingDetailsPage() {
                 </select>
               </div>
 
-              <button className="booking-reserve-btn">Reserve</button>
+              <button
+                type="button"
+                className="booking-reserve-btn"
+                onClick={handleReserve}
+              >
+                Reserve
+              </button>
+              {reservationMessage && (
+                <p className="booking-widget__message" role="status">
+                  {reservationMessage}
+                </p>
+              )}
               <p className="booking-widget__note">You won't be charged yet</p>
 
               <div className="booking-widget__breakdown">

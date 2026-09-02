@@ -1431,6 +1431,22 @@ select {
 /* Reviews */
 .detail-reviews {
   padding: 24px 0;
+  scroll-margin-top: 24px;
+}
+
+.detail-reviews:focus {
+  outline: 2px solid rgba(255, 56, 92, 0.3);
+  outline-offset: 8px;
+}
+
+.amenities-modal {
+  max-width: 680px;
+}
+
+.amenities-modal__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px 28px;
 }
 
 .detail-reviews__header {
@@ -1649,6 +1665,14 @@ select {
 .booking-reserve-btn:hover {
   opacity: 0.92;
   transform: scale(1.01);
+}
+
+.booking-widget__message {
+  margin: -2px 0 14px;
+  color: #18794e;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  text-align: center;
 }
 
 .booking-widget__note {
