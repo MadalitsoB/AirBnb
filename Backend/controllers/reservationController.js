@@ -23,11 +23,7 @@ exports.createReservation = async (req, res) => {
       });
     }
 
-    const demoAccommodation = (global.demoListings || []).find(
-      (item) => item._id === String(accommodation),
-    );
-    const accommodationData =
-      demoAccommodation || (await Accommodation.findById(accommodation));
+    const accommodationData = await Accommodation.findById(accommodation);
     if (!accommodationData) {
       return res.status(404).json({
         success: false,
@@ -67,35 +63,6 @@ exports.createReservation = async (req, res) => {
 
       totalPrice =
         subtotal - weeklyDiscount + cleaningFee + serviceFee + occupancyTaxes;
-    }
-
-    if (demoAccommodation) {
-      const reservation = {
-        _id: `demo-reservation-${Date.now()}`,
-        accommodation: demoAccommodation,
-        guest: (global.demoUsers || []).find(
-          (user) => user._id === req.user.id,
-        ) || { _id: req.user.id },
-        checkInDate,
-        checkOutDate,
-        numberOfGuests,
-        totalPrice,
-        status: "pending",
-        paymentStatus: "pending",
-        priceBreakdown: priceBreakdown || {
-          nightlyRate: accommodationData.price,
-          numberOfNights,
-          subtotal: accommodationData.price * numberOfNights,
-          weeklyDiscount: 0,
-          cleaningFee: accommodationData.cleaningFee || 500,
-          serviceFee: accommodationData.serviceFee || 1050,
-          occupancyTaxes: accommodationData.occupancyTaxes || 0,
-          total: totalPrice,
-        },
-      };
-      global.demoReservations = global.demoReservations || [];
-      global.demoReservations.push(reservation);
-      return res.status(201).json({ success: true, data: reservation });
     }
 
     // Create reservation
@@ -270,12 +237,10 @@ exports.updateReservationStatus = async (req, res) => {
           ? accommodation.host?._id
           : accommodation?.host;
       if (ownerId !== req.user.id) {
-        return res
-          .status(403)
-          .json({
-            success: false,
-            message: "Not authorized to update this reservation",
-          });
+        return res.status(403).json({
+          success: false,
+          message: "Not authorized to update this reservation",
+        });
       }
       demoReservation.status = status;
       return res.status(200).json({ success: true, data: demoReservation });
@@ -289,12 +254,10 @@ exports.updateReservationStatus = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Reservation not found" });
     if (reservation.accommodation.host.toString() !== req.user.id) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Not authorized to update this reservation",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this reservation",
+      });
     }
     reservation.status = status;
     await reservation.save();

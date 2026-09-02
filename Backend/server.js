@@ -16,7 +16,7 @@ const openai = new OpenAI({ apiKey });
 app.use(cors());
 app.use(express.json());
 
-connectDB();
+// MongoDB is required for all persistent application data.
 
 const sampleListings = [
   {
@@ -221,30 +221,11 @@ const sampleListings = [
   },
 ];
 
-global.demoListings = sampleListings;
-global.demoReservations = [];
-global.demoUsers = [
-  {
-    _id: "demo-user",
-    username: "student",
-    email: "student@airbnb.com",
-    password: "student123",
-    role: "user",
-  },
-  {
-    _id: "demo-host",
-    username: "hostdemo",
-    email: "host@airbnb.com",
-    password: "host123",
-    role: "host",
-  },
-];
-
 app.get("/", (req, res) => {
   res.json({
     message: "AirBnb API is running",
     apiKeyConfigured: Boolean(apiKey),
-    demoMode: true,
+    demoMode: false,
   });
 });
 
@@ -293,7 +274,14 @@ app.post("/api/chat", async (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`OpenAI configured: ${Boolean(apiKey)}`);
-});
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+      console.log(`OpenAI configured: ${Boolean(apiKey)}`);
+    });
+  })
+  .catch((error) => {
+    console.error(error.message);
+    process.exit(1);
+  });

@@ -19,26 +19,11 @@ const hostOnly = (req, res, next) => {
 };
 
 router.get("/", (req, res) => {
-  res.json({
-    success: true,
-    count: (global.demoListings || []).length,
-    data: global.demoListings || [],
-  });
+  return getAccommodations(req, res);
 });
 
 router.get("/:id", (req, res) => {
-  const listing = (global.demoListings || []).find(
-    (item) => item._id === req.params.id,
-  );
-
-  if (!listing) {
-    return res.status(404).json({
-      success: false,
-      message: "Accommodation not found",
-    });
-  }
-
-  res.json({ success: true, data: listing });
+  return getAccommodation(req, res);
 });
 
 router.post("/", protect, hostOnly, createAccommodation);
