@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { apiFetch } from "../services/api";
 
 const AMENITIES = [
   { icon: "🌊", label: "Ocean view" },
@@ -14,10 +15,30 @@ const AMENITIES = [
 ];
 
 const REVIEWS = [
-  { name: "Sarah M.", date: "October 2024", avatar: "S", text: "Absolutely stunning place. The views were breathtaking and the host was incredibly attentive. Would definitely come back!" },
-  { name: "James K.", date: "September 2024", avatar: "J", text: "Perfect getaway. Clean, modern and exactly as described. Great location close to restaurants and shops." },
-  { name: "Lerato N.", date: "August 2024", avatar: "L", text: "One of the best Airbnbs I've stayed in. Very spacious and comfortable. The check-in was seamless." },
-  { name: "Tom P.", date: "July 2024", avatar: "T", text: "Lovely property in a great area. The amenities were top-notch. Highly recommend for families." },
+  {
+    name: "Sarah M.",
+    date: "October 2024",
+    avatar: "S",
+    text: "Absolutely stunning place. The views were breathtaking and the host was incredibly attentive. Would definitely come back!",
+  },
+  {
+    name: "James K.",
+    date: "September 2024",
+    avatar: "J",
+    text: "Perfect getaway. Clean, modern and exactly as described. Great location close to restaurants and shops.",
+  },
+  {
+    name: "Lerato N.",
+    date: "August 2024",
+    avatar: "L",
+    text: "One of the best Airbnbs I've stayed in. Very spacious and comfortable. The check-in was seamless.",
+  },
+  {
+    name: "Tom P.",
+    date: "July 2024",
+    avatar: "T",
+    text: "Lovely property in a great area. The amenities were top-notch. Highly recommend for families.",
+  },
 ];
 
 function ListingDetailsPage() {
@@ -25,15 +46,27 @@ function ListingDetailsPage() {
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);
+  const [showAllPhotos, setShowAllPhotos] = useState(false);
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
-  const [guests, setGuests] = useState(1);
+  const [guests, setGuests] = useState(4);
+  const [showPhotoEditor, setShowPhotoEditor] = useState(false);
+  const [customImages, setCustomImages] = useState([]);
+  const [photoDraft, setPhotoDraft] = useState("");
+  const [photoError, setPhotoError] = useState("");
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/accommodations/${id}`)
-      .then((res) => res.json())
+    apiFetch(`/accommodations/${id}`)
       .then((data) => {
-        if (data.success) setListing(data.data);
+        if (data?.success) {
+          setListing(data.data);
+          const savedImages = localStorage.getItem(`listing-images-${id}`);
+          const parsedImages = savedImages ? JSON.parse(savedImages) : [];
+          if (Array.isArray(parsedImages)) {
+            setCustomImages(parsedImages);
+            setPhotoDraft(parsedImages.join("\n"));
+          }
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -67,20 +100,72 @@ function ListingDetailsPage() {
       "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80",
     ],
     host: { username: "Maria", email: "maria@example.com" },
-    description: "A stunning beachfront villa with panoramic ocean views. This spacious retreat offers the perfect blend of luxury and comfort, featuring modern amenities, a private pool, and direct beach access. Ideal for families or groups looking for an unforgettable South African experience.",
+    description:
+      "A stunning beachfront villa with panoramic ocean views. This spacious retreat offers the perfect blend of luxury and comfort, featuring modern amenities, a private pool, and direct beach access. Ideal for families or groups looking for an unforgettable South African experience.",
   };
 
   const images = item.images?.length
     ? item.images
-    : ["https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"];
+    : [
+        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+      ];
 
-  const nights = checkIn && checkOut
-    ? Math.max(1, Math.ceil((new Date(checkOut) - new Date(checkIn)) / 86400000))
-    : 5;
+  const displayedImages = customImages.length ? customImages : images;
+
+  const saveCustomImages = () => {
+    const nextImages = photoDraft
+      .split(/\r?\n|,/)
+      .map((url) => url.trim())
+      .filter(Boolean);
+
+    if (nextImages.length < 1) {
+      setPhotoError(
+        "Add at least one image URL, or reset to the curated gallery.",
+      );
+      return;
+    }
+
+    const invalidUrl = nextImages.find((url) => {
+      try {
+        return !["http:", "https:"].includes(new URL(url).protocol);
+      } catch {
+        return true;
+      }
+    });
+
+    if (invalidUrl) {
+      setPhotoError("Each image must be a valid http or https URL.");
+      return;
+    }
+
+    localStorage.setItem(`listing-images-${id}`, JSON.stringify(nextImages));
+    setCustomImages(nextImages);
+    setPhotoError("");
+    setActiveImg(0);
+    setShowPhotoEditor(false);
+  };
+
+  const resetCustomImages = () => {
+    localStorage.removeItem(`listing-images-${id}`);
+    setCustomImages([]);
+    setPhotoDraft(images.join("\n"));
+    setPhotoError("");
+    setActiveImg(0);
+  };
+
+  const maxGuests = Math.max(10, Number(item.guests) || 10);
+
+  const nights =
+    checkIn && checkOut
+      ? Math.max(
+          1,
+          Math.ceil((new Date(checkOut) - new Date(checkIn)) / 86400000),
+        )
+      : 5;
 
   const subtotal = (item.price || 2500) * nights;
-  const cleaningFee = item.cleaningFee || 350;
-  const serviceFee = Math.round(subtotal * 0.14);
+  const cleaningFee = 500;
+  const serviceFee = 1050;
   const total = subtotal + cleaningFee + serviceFee;
 
   return (
@@ -93,20 +178,62 @@ function ListingDetailsPage() {
           <h1 className="detail-title">{item.title}</h1>
           <div className="detail-header__row">
             <div className="detail-header__meta">
-              <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M8 1l1.85 3.75L14 5.5l-3 2.92.71 4.13L8 10.4l-3.71 1.95.71-4.13L2 5.5l4.15-.75L8 1z"/></svg>
+              <svg
+                viewBox="0 0 16 16"
+                width="13"
+                height="13"
+                fill="currentColor"
+              >
+                <path d="M8 1l1.85 3.75L14 5.5l-3 2.92.71 4.13L8 10.4l-3.71 1.95.71-4.13L2 5.5l4.15-.75L8 1z" />
+              </svg>
               <strong>{item.rating || 4.97}</strong>
               <span className="detail-header__dot">·</span>
-              <a href="#reviews" className="detail-header__reviews">{item.reviewCount || 211} reviews</a>
+              <a href="#reviews" className="detail-header__reviews">
+                {item.reviewCount || 211} reviews
+              </a>
               <span className="detail-header__dot">·</span>
               <span className="detail-header__loc">{item.location}</span>
             </div>
             <div className="detail-header__actions">
+              <button
+                type="button"
+                className="detail-action-btn"
+                onClick={() => {
+                  setPhotoDraft(displayedImages.join("\n"));
+                  setPhotoError("");
+                  setShowPhotoEditor(true);
+                }}
+              >
+                Edit photos
+              </button>
               <button className="detail-action-btn">
-                <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 8l4 4 8-8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <svg
+                  viewBox="0 0 16 16"
+                  width="15"
+                  height="15"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
+                  <path
+                    d="M2 8l4 4 8-8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
                 Share
               </button>
               <button className="detail-action-btn">
-                <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 2.5C5.5 2.5 3 4.5 3 7c0 3 5 7.5 5 7.5S13 10 13 7c0-2.5-2.5-4.5-5-4.5zm0 5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>
+                <svg
+                  viewBox="0 0 16 16"
+                  width="15"
+                  height="15"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
+                  <path d="M8 2.5C5.5 2.5 3 4.5 3 7c0 3 5 7.5 5 7.5S13 10 13 7c0-2.5-2.5-4.5-5-4.5zm0 5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" />
+                </svg>
                 Save
               </button>
             </div>
@@ -117,7 +244,7 @@ function ListingDetailsPage() {
         <div className="detail-gallery">
           <div className="detail-gallery__main">
             <img
-              src={images[0]}
+              src={displayedImages[0]}
               alt={item.title}
               className="detail-gallery__img detail-gallery__img--main"
             />
@@ -126,32 +253,131 @@ function ListingDetailsPage() {
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="detail-gallery__side-cell">
                 <img
-                  src={images[i] || images[0]}
+                  src={displayedImages[i] || displayedImages[0]}
                   alt={`${item.title} ${i + 1}`}
                   className="detail-gallery__img"
                 />
               </div>
             ))}
           </div>
-          <button className="detail-gallery__all-btn">
-            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+          <button
+            type="button"
+            className="detail-gallery__all-btn"
+            onClick={() => setShowAllPhotos(true)}
+          >
+            <svg
+              viewBox="0 0 16 16"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <rect x="1" y="1" width="6" height="6" rx="1" />
+              <rect x="9" y="1" width="6" height="6" rx="1" />
+              <rect x="1" y="9" width="6" height="6" rx="1" />
+              <rect x="9" y="9" width="6" height="6" rx="1" />
+            </svg>
             Show all photos
           </button>
         </div>
+
+        {showPhotoEditor && (
+          <div
+            className="photo-editor"
+            role="dialog"
+            aria-labelledby="photo-editor-title"
+          >
+            <div className="photo-editor__header">
+              <div>
+                <h2 id="photo-editor-title">Customize this gallery</h2>
+                <p>
+                  Paste one image URL per line. Changes are saved on this
+                  device.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="photo-editor__close"
+                aria-label="Close photo editor"
+                onClick={() => setShowPhotoEditor(false)}
+              >
+                ×
+              </button>
+            </div>
+            <textarea
+              value={photoDraft}
+              onChange={(event) => setPhotoDraft(event.target.value)}
+              placeholder="https://example.com/sandton-apartment.jpg"
+              rows={5}
+            />
+            {photoError && <p className="photo-editor__error">{photoError}</p>}
+            <div className="photo-editor__actions">
+              <button
+                type="button"
+                className="photo-editor__reset"
+                onClick={resetCustomImages}
+              >
+                Reset curated photos
+              </button>
+              <button
+                type="button"
+                className="photo-editor__save"
+                onClick={saveCustomImages}
+              >
+                Save gallery
+              </button>
+            </div>
+          </div>
+        )}
+
+        {showAllPhotos && (
+          <div
+            className="detail-gallery-modal"
+            onClick={() => setShowAllPhotos(false)}
+          >
+            <div
+              className="detail-gallery-modal__panel"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="detail-gallery-modal__header">
+                <h3>Photos</h3>
+                <button
+                  type="button"
+                  className="detail-gallery-modal__close"
+                  onClick={() => setShowAllPhotos(false)}
+                >
+                  Close
+                </button>
+              </div>
+              <div className="detail-gallery-modal__grid">
+                {displayedImages.map((img, index) => (
+                  <img
+                    key={`${img}-${index}`}
+                    src={img}
+                    alt={`${item.title} ${index + 1}`}
+                    className="detail-gallery-modal__img"
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Body */}
         <div className="detail-body">
           {/* Left column */}
           <div className="detail-body__left">
-
             {/* Host info */}
             <div className="detail-host">
               <div className="detail-host__info">
                 <h2 className="detail-host__title">
-                  {item.type || "Entire villa"} hosted by {item.host?.username || "Maria"}
+                  {item.type || "Entire villa"} hosted by{" "}
+                  {item.host?.username || "Maria"}
                 </h2>
                 <p className="detail-host__meta">
-                  {item.guests || 8} guests · {item.bedrooms || 4} bedrooms · {item.bathrooms || 3} bathrooms
+                  {item.guests || 8} guests · {item.bedrooms || 4} bedrooms ·{" "}
+                  {item.bathrooms || 3} bathrooms
                 </p>
               </div>
               <div className="detail-host__avatar">
@@ -166,9 +392,21 @@ function ListingDetailsPage() {
             {/* Highlights */}
             <div className="detail-highlights">
               {[
-                { icon: "🏅", title: "Maria is a Superhost", sub: "Superhosts are experienced, highly rated hosts." },
-                { icon: "📍", title: "Great location", sub: "100% of recent guests gave the location a 5-star rating." },
-                { icon: "🗓️", title: "Free cancellation for 48 hours", sub: "Get a full refund if you change your mind." },
+                {
+                  icon: "🏅",
+                  title: "Maria is a Superhost",
+                  sub: "Superhosts are experienced, highly rated hosts.",
+                },
+                {
+                  icon: "📍",
+                  title: "Great location",
+                  sub: "100% of recent guests gave the location a 5-star rating.",
+                },
+                {
+                  icon: "🗓️",
+                  title: "Free cancellation for 48 hours",
+                  sub: "Get a full refund if you change your mind.",
+                },
               ].map((h) => (
                 <div key={h.title} className="detail-highlight">
                   <span className="detail-highlight__icon">{h.icon}</span>
@@ -184,7 +422,10 @@ function ListingDetailsPage() {
 
             {/* Description */}
             <div className="detail-desc">
-              <p>{item.description || "A beautiful and spacious property with stunning views. Perfect for a relaxing getaway or a family holiday. Fully equipped kitchen, fast WiFi, and all the comforts of home."}</p>
+              <p>
+                {item.description ||
+                  "A beautiful and spacious property with stunning views. Perfect for a relaxing getaway or a family holiday. Fully equipped kitchen, fast WiFi, and all the comforts of home."}
+              </p>
             </div>
 
             <hr className="detail-divider" />
@@ -200,7 +441,9 @@ function ListingDetailsPage() {
                   </div>
                 ))}
               </div>
-              <button className="detail-show-all-btn">Show all 20 amenities</button>
+              <button className="detail-show-all-btn">
+                Show all 20 amenities
+              </button>
             </div>
 
             <hr className="detail-divider" />
@@ -208,21 +451,44 @@ function ListingDetailsPage() {
             {/* Reviews */}
             <div className="detail-reviews" id="reviews">
               <div className="detail-reviews__header">
-                <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor"><path d="M8 1l1.85 3.75L14 5.5l-3 2.92.71 4.13L8 10.4l-3.71 1.95.71-4.13L2 5.5l4.15-.75L8 1z"/></svg>
-                <span className="detail-reviews__score">{item.rating || 4.97}</span>
+                <svg
+                  viewBox="0 0 16 16"
+                  width="18"
+                  height="18"
+                  fill="currentColor"
+                >
+                  <path d="M8 1l1.85 3.75L14 5.5l-3 2.92.71 4.13L8 10.4l-3.71 1.95.71-4.13L2 5.5l4.15-.75L8 1z" />
+                </svg>
+                <span className="detail-reviews__score">
+                  {item.rating || 4.97}
+                </span>
                 <span className="detail-reviews__dot">·</span>
-                <span className="detail-reviews__count">{item.reviewCount || 211} reviews</span>
+                <span className="detail-reviews__count">
+                  {item.reviewCount || 211} reviews
+                </span>
               </div>
 
               {/* Rating breakdown */}
               <div className="reviews-breakdown">
-                {["Cleanliness", "Accuracy", "Check-in", "Communication", "Location", "Value"].map((cat) => (
+                {[
+                  "Cleanliness",
+                  "Accuracy",
+                  "Check-in",
+                  "Communication",
+                  "Location",
+                  "Value",
+                ].map((cat) => (
                   <div key={cat} className="review-bar">
                     <span className="review-bar__label">{cat}</span>
                     <div className="review-bar__track">
-                      <div className="review-bar__fill" style={{ width: `${85 + Math.random() * 15}%` }} />
+                      <div
+                        className="review-bar__fill"
+                        style={{ width: `${85 + Math.random() * 15}%` }}
+                      />
                     </div>
-                    <span className="review-bar__score">4.{Math.floor(Math.random() * 2 + 8)}</span>
+                    <span className="review-bar__score">
+                      4.{Math.floor(Math.random() * 2 + 8)}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -242,18 +508,26 @@ function ListingDetailsPage() {
                 ))}
               </div>
             </div>
-
           </div>
 
           {/* Right column - Booking widget */}
           <div className="detail-body__right">
             <div className="booking-widget">
               <div className="booking-widget__price">
-                <strong className="booking-widget__amount">R{(item.price || 2500).toLocaleString()}</strong>
+                <strong className="booking-widget__amount">
+                  R{(item.price || 2500).toLocaleString()}
+                </strong>
                 <span className="booking-widget__per"> night</span>
               </div>
               <div className="booking-widget__rating">
-                <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M8 1l1.85 3.75L14 5.5l-3 2.92.71 4.13L8 10.4l-3.71 1.95.71-4.13L2 5.5l4.15-.75L8 1z"/></svg>
+                <svg
+                  viewBox="0 0 16 16"
+                  width="12"
+                  height="12"
+                  fill="currentColor"
+                >
+                  <path d="M8 1l1.85 3.75L14 5.5l-3 2.92.71 4.13L8 10.4l-3.71 1.95.71-4.13L2 5.5l4.15-.75L8 1z" />
+                </svg>
                 <strong>{item.rating || 4.97}</strong>
                 <span> · {item.reviewCount || 211} reviews</span>
               </div>
@@ -261,19 +535,32 @@ function ListingDetailsPage() {
               <div className="booking-widget__dates">
                 <div className="booking-date-cell booking-date-cell--left">
                   <label>CHECK-IN</label>
-                  <input type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
+                  <input
+                    type="date"
+                    value={checkIn}
+                    onChange={(e) => setCheckIn(e.target.value)}
+                  />
                 </div>
                 <div className="booking-date-cell booking-date-cell--right">
                   <label>CHECKOUT</label>
-                  <input type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} />
+                  <input
+                    type="date"
+                    value={checkOut}
+                    onChange={(e) => setCheckOut(e.target.value)}
+                  />
                 </div>
               </div>
 
               <div className="booking-guests-cell">
                 <label>GUESTS</label>
-                <select value={guests} onChange={(e) => setGuests(Number(e.target.value))}>
-                  {[...Array(item.guests || 8)].map((_, i) => (
-                    <option key={i + 1} value={i + 1}>{i + 1} guest{i > 0 ? "s" : ""}</option>
+                <select
+                  value={guests}
+                  onChange={(e) => setGuests(Number(e.target.value))}
+                >
+                  {[...Array(maxGuests)].map((_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {i + 1} guest{i > 0 ? "s" : ""}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -283,7 +570,9 @@ function ListingDetailsPage() {
 
               <div className="booking-widget__breakdown">
                 <div className="booking-breakdown-row">
-                  <span>R{(item.price || 2500).toLocaleString()} × {nights} nights</span>
+                  <span>
+                    R{(item.price || 2500).toLocaleString()} × {nights} nights
+                  </span>
                   <span>R{subtotal.toLocaleString()}</span>
                 </div>
                 <div className="booking-breakdown-row">
@@ -304,7 +593,17 @@ function ListingDetailsPage() {
 
             {/* Report link */}
             <div className="detail-report">
-              <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 3v5M8 10v1" strokeLinecap="round"/><circle cx="8" cy="8" r="7"/></svg>
+              <svg
+                viewBox="0 0 16 16"
+                width="14"
+                height="14"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
+                <path d="M8 3v5M8 10v1" strokeLinecap="round" />
+                <circle cx="8" cy="8" r="7" />
+              </svg>
               Report this listing
             </div>
           </div>

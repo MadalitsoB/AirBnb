@@ -1,15 +1,66 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
+const LOCATION_OPTIONS = [
+  "Anywhere",
+  "Cape Town",
+  "Durban",
+  "Johannesburg",
+  "Knysna",
+  "Stellenbosch",
+  "Hermanus",
+  "Franschhoek",
+  "Drakensberg",
+];
+
+const WEEK_OPTIONS = ["Any week", "Weekend", "1 week", "2 weeks", "Month"];
+const GUEST_OPTIONS = [
+  "Add guests",
+  "2 guests",
+  "4 guests",
+  "6 guests",
+  "8+ guests",
+];
+
 function Navbar() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [location, setLocation] = useState("Anywhere");
+  const [week, setWeek] = useState("Any week");
+  const [guests, setGuests] = useState("Add guests");
   const token = localStorage.getItem("airbnbToken");
 
   const handleLogout = () => {
     localStorage.removeItem("airbnbToken");
     navigate("/");
     setMenuOpen(false);
+  };
+
+  const cycleValue = (list, current, setter) => {
+    const currentIndex = list.indexOf(current);
+    const nextIndex = (currentIndex + 1) % list.length;
+    setter(list[nextIndex]);
+  };
+
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+
+    if (location !== "Anywhere") {
+      params.set("location", location);
+    }
+
+    if (guests !== "Add guests") {
+      const guestValue = Number.parseInt(guests, 10);
+      if (!Number.isNaN(guestValue) && guestValue > 0) {
+        params.set("guests", String(guestValue));
+      }
+    }
+
+    if (week !== "Any week") {
+      params.set("week", week);
+    }
+
+    navigate(`/listings${params.toString() ? `?${params.toString()}` : ""}`);
   };
 
   return (
@@ -25,18 +76,43 @@ function Navbar() {
 
         {/* Center search */}
         <div className="navbar__search">
-          <button className="navbar__search-pill">
-            <span>Anywhere</span>
+          <div className="navbar__search-pill">
+            <button
+              type="button"
+              className="navbar__search-option"
+              onClick={() =>
+                cycleValue(LOCATION_OPTIONS, location, setLocation)
+              }
+            >
+              <span>{location}</span>
+            </button>
             <span className="navbar__search-divider" />
-            <span>Any week</span>
+            <button
+              type="button"
+              className="navbar__search-option"
+              onClick={() => cycleValue(WEEK_OPTIONS, week, setWeek)}
+            >
+              <span>{week}</span>
+            </button>
             <span className="navbar__search-divider" />
-            <span className="navbar__search-guests">Add guests</span>
-            <span className="navbar__search-btn">
+            <button
+              type="button"
+              className="navbar__search-option navbar__search-guests"
+              onClick={() => cycleValue(GUEST_OPTIONS, guests, setGuests)}
+            >
+              <span>{guests}</span>
+            </button>
+            <button
+              type="button"
+              className="navbar__search-btn"
+              onClick={handleSearch}
+              aria-label="Search stays"
+            >
               <svg viewBox="0 0 32 32" width="14" height="14" fill="white">
                 <path d="M13 2a11 11 0 1 0 7.05 19.464l6.243 6.243 1.414-1.414-6.243-6.243A11 11 0 0 0 13 2zm0 2a9 9 0 1 1 0 18A9 9 0 0 1 13 4z" />
               </svg>
-            </span>
-          </button>
+            </button>
+          </div>
         </div>
 
         {/* Right side */}
@@ -53,7 +129,12 @@ function Navbar() {
 
           <div className="navbar__user" onClick={() => setMenuOpen(!menuOpen)}>
             <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor">
-              <path d="M3 8h26M3 16h26M3 24h26" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path
+                d="M3 8h26M3 16h26M3 24h26"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
             </svg>
             <div className="navbar__avatar">
               <svg viewBox="0 0 32 32" width="22" height="22" fill="#717171">
@@ -65,16 +146,51 @@ function Navbar() {
               <div className="navbar__dropdown">
                 {token ? (
                   <>
-                    <Link to="/listings" className="navbar__dropdown-item" onClick={() => setMenuOpen(false)}>Listings</Link>
-                    <button className="navbar__dropdown-item" onClick={handleLogout}>Log out</button>
+                    <Link
+                      to="/listings"
+                      className="navbar__dropdown-item"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Listings
+                    </Link>
+                    <button
+                      className="navbar__dropdown-item"
+                      onClick={handleLogout}
+                    >
+                      Log out
+                    </button>
                   </>
                 ) : (
                   <>
-                    <Link to="/login" className="navbar__dropdown-item navbar__dropdown-item--bold" onClick={() => setMenuOpen(false)}>Log in</Link>
-                    <Link to="/signup" className="navbar__dropdown-item" onClick={() => setMenuOpen(false)}>Sign up</Link>
+                    <Link
+                      to="/login"
+                      className="navbar__dropdown-item navbar__dropdown-item--bold"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Log in
+                    </Link>
+                    <Link
+                      to="/signup"
+                      className="navbar__dropdown-item"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Sign up
+                    </Link>
                     <hr className="navbar__dropdown-hr" />
-                    <Link to="/listings" className="navbar__dropdown-item" onClick={() => setMenuOpen(false)}>Airbnb your home</Link>
-                    <Link to="/listings" className="navbar__dropdown-item" onClick={() => setMenuOpen(false)}>Help</Link>
+                    <Link
+                      to="/listings"
+                      className="navbar__dropdown-item"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Airbnb your home
+                    </Link>
+                    <Link
+                      to="/listings"
+                      className="navbar__dropdown-item"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Help
+                    </Link>
                   </>
                 )}
               </div>
