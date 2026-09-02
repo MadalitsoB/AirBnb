@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { apiFetch } from "../services/api";
@@ -24,10 +24,10 @@ function HostDashboard() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  const loadDashboard = async () => {
+  const loadDashboard = useCallback(async () => {
     try {
       const me = await apiFetch("/users/me");
-      if (!['host', 'admin'].includes(me.data?.role)) {
+      if (!["host", "admin"].includes(me.data?.role)) {
         navigate("/listings");
         return;
       }
@@ -37,7 +37,8 @@ function HostDashboard() {
         apiFetch("/reservations/host"),
       ]);
       const ownedListings = (listingResponse.data || []).filter((listing) => {
-        const ownerId = typeof listing.host === "object" ? listing.host?._id : listing.host;
+        const ownerId =
+          typeof listing.host === "object" ? listing.host?._id : listing.host;
         return ownerId === me.data.id;
       });
       setListings(ownedListings);
@@ -45,11 +46,12 @@ function HostDashboard() {
     } catch (loadError) {
       setError(loadError.message || "Please log in as a host to continue.");
     }
-  };
+  }, [navigate]);
 
   useEffect(() => {
-    loadDashboard();
-  }, []);
+    const dashboardTask = setTimeout(() => loadDashboard(), 0);
+    return () => clearTimeout(dashboardTask);
+  }, [loadDashboard]);
 
   const handleChange = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -68,7 +70,10 @@ function HostDashboard() {
           bedrooms: Number(form.bedrooms),
           bathrooms: Number(form.bathrooms),
           guests: Number(form.guests),
-          images: form.images.split(/\r?\n|,/).map((image) => image.trim()).filter(Boolean),
+          images: form.images
+            .split(/\r?\n|,/)
+            .map((image) => image.trim())
+            .filter(Boolean),
         }),
       });
       setForm(initialForm);
@@ -76,6 +81,30 @@ function HostDashboard() {
       loadDashboard();
     } catch (createError) {
       setError(createError.message || "Could not create listing.");
+    }
+  };
+
+  const handleDeleteListing = async (listingId) => {
+    if (!window.confirm("Delete this listing?")) return;
+    try {
+      await apiFetch(`/accommodations/${listingId}`, { method: "DELETE" });
+      setMessage("Listing deleted.");
+      loadDashboard();
+    } catch (deleteError) {
+      setError(deleteError.message || "Could not delete listing.");
+    }
+  };
+
+  const handleReservationStatus = async (reservationId, status) => {
+    try {
+      await apiFetch(`/reservations/${reservationId}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+      });
+      setMessage(`Reservation ${status}.`);
+      loadDashboard();
+    } catch (statusError) {
+      setError(statusError.message || "Could not update reservation.");
     }
   };
 
@@ -89,26 +118,60 @@ function HostDashboard() {
             <h1>Welcome{user?.username ? `, ${user.username}` : ""}</h1>
             <p>Manage your stays and keep an eye on upcoming guests.</p>
           </div>
-          <Link to="/listings" className="host-dashboard__browse">Browse stays</Link>
+          <Link to="/listings" className="host-dashboard__browse">
+            Browse stays
+          </Link>
         </div>
 
         {error && <p className="host-dashboard__error">{error}</p>}
         {message && <p className="host-dashboard__success">{message}</p>}
 
         <div className="host-dashboard__stats">
-          <div><strong>{listings.length}</strong><span>Active listings</span></div>
-          <div><strong>{reservations.length}</strong><span>Reservations</span></div>
-          <div><strong>{reservations.filter((item) => item.status === "pending").length}</strong><span>Awaiting response</span></div>
+          <div>
+            <strong>{listings.length}</strong>
+            <span>Active listings</span>
+          </div>
+          <div>
+            <strong>{reservations.length}</strong>
+            <span>Reservations</span>
+          </div>
+          <div>
+            <strong>
+              {reservations.filter((item) => item.status === "pending").length}
+            </strong>
+            <span>Awaiting response</span>
+          </div>
         </div>
 
         <div className="host-dashboard__grid">
           <section className="host-panel">
             <h2>Create a listing</h2>
-            <p className="host-panel__hint">Add a stay for guests to discover in South Africa.</p>
+            <p className="host-panel__hint">
+              Add a stay for guests to discover in South Africa.
+            </p>
             <form className="host-form" onSubmit={handleSubmit}>
-              <input name="title" value={form.title} onChange={handleChange} placeholder="Listing title" required />
-              <input name="location" value={form.location} onChange={handleChange} placeholder="Location, e.g. Sandton, South Africa" required />
-              <textarea name="description" value={form.description} onChange={handleChange} placeholder="Describe the space" required rows="4" />
+              <input
+                name="title"
+                value={form.title}
+                onChange={handleChange}
+                placeholder="Listing title"
+                required
+              />
+              <input
+                name="location"
+                value={form.location}
+                onChange={handleChange}
+                placeholder="Location, e.g. Sandton, South Africa"
+                required
+              />
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                placeholder="Describe the space"
+                required
+                rows="4"
+              />
               <select name="type" value={form.type} onChange={handleChange}>
                 <option>Entire apartment</option>
                 <option>Private room</option>
@@ -116,38 +179,147 @@ function HostDashboard() {
                 <option>Hotel room</option>
               </select>
               <div className="host-form__row">
-                <input name="price" type="number" min="1" value={form.price} onChange={handleChange} placeholder="Price per night (R)" required />
-                <input name="guests" type="number" min="1" value={form.guests} onChange={handleChange} placeholder="Guests" required />
+                <input
+                  name="price"
+                  type="number"
+                  min="1"
+                  value={form.price}
+                  onChange={handleChange}
+                  placeholder="Price per night (R)"
+                  required
+                />
+                <input
+                  name="guests"
+                  type="number"
+                  min="1"
+                  value={form.guests}
+                  onChange={handleChange}
+                  placeholder="Guests"
+                  required
+                />
               </div>
               <div className="host-form__row">
-                <input name="bedrooms" type="number" min="0" value={form.bedrooms} onChange={handleChange} placeholder="Bedrooms" required />
-                <input name="bathrooms" type="number" min="0" value={form.bathrooms} onChange={handleChange} placeholder="Bathrooms" required />
+                <input
+                  name="bedrooms"
+                  type="number"
+                  min="0"
+                  value={form.bedrooms}
+                  onChange={handleChange}
+                  placeholder="Bedrooms"
+                  required
+                />
+                <input
+                  name="bathrooms"
+                  type="number"
+                  min="0"
+                  value={form.bathrooms}
+                  onChange={handleChange}
+                  placeholder="Bathrooms"
+                  required
+                />
               </div>
-              <textarea name="images" value={form.images} onChange={handleChange} placeholder="Image URLs, one per line" rows="3" />
-              <button type="submit" className="host-form__submit">Publish listing</button>
+              <textarea
+                name="images"
+                value={form.images}
+                onChange={handleChange}
+                placeholder="Image URLs, one per line"
+                rows="3"
+              />
+              <button type="submit" className="host-form__submit">
+                Publish listing
+              </button>
             </form>
           </section>
 
           <section className="host-panel">
             <h2>Reservations</h2>
             {reservations.length === 0 ? (
-              <p className="host-panel__empty">No reservations yet. They will appear here when a guest books one of your stays.</p>
+              <p className="host-panel__empty">
+                No reservations yet. They will appear here when a guest books
+                one of your stays.
+              </p>
             ) : (
               <div className="reservation-list">
                 {reservations.map((reservation) => (
                   <article key={reservation._id} className="reservation-item">
                     <div>
-                      <strong>{reservation.accommodation?.title || "Your listing"}</strong>
-                      <p>{reservation.checkInDate} to {reservation.checkOutDate}</p>
-                      <p>{reservation.numberOfGuests} guest{reservation.numberOfGuests === 1 ? "" : "s"}</p>
+                      <strong>
+                        {reservation.accommodation?.title || "Your listing"}
+                      </strong>
+                      <p>
+                        {reservation.checkInDate} to {reservation.checkOutDate}
+                      </p>
+                      <p>
+                        {reservation.numberOfGuests} guest
+                        {reservation.numberOfGuests === 1 ? "" : "s"}
+                      </p>
                     </div>
-                    <span className={`reservation-status reservation-status--${reservation.status}`}>{reservation.status}</span>
+                    <span
+                      className={`reservation-status reservation-status--${reservation.status}`}
+                    >
+                      {reservation.status}
+                    </span>
+                    {reservation.status === "pending" && (
+                      <div className="reservation-item__actions">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleReservationStatus(
+                              reservation._id,
+                              "confirmed",
+                            )
+                          }
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleReservationStatus(
+                              reservation._id,
+                              "cancelled",
+                            )
+                          }
+                        >
+                          Decline
+                        </button>
+                      </div>
+                    )}
                   </article>
                 ))}
               </div>
             )}
           </section>
         </div>
+
+        <section className="host-panel host-panel--listings">
+          <h2>Your listings</h2>
+          {listings.length === 0 ? (
+            <p className="host-panel__empty">
+              Your published listings will appear here.
+            </p>
+          ) : (
+            <div className="host-listing-list">
+              {listings.map((listing) => (
+                <article key={listing._id} className="host-listing-item">
+                  <div>
+                    <strong>{listing.title}</strong>
+                    <p>
+                      {listing.location} · R
+                      {Number(listing.price).toLocaleString()} per night
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteListing(listing._id)}
+                  >
+                    Delete
+                  </button>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
       </main>
     </div>
   );

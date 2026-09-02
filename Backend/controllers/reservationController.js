@@ -147,13 +147,11 @@ exports.getUserReservations = async (req, res) => {
         reservation.guest === req.user.id,
     );
     if (demoReservations.length || global.demoReservations) {
-      return res
-        .status(200)
-        .json({
-          success: true,
-          count: demoReservations.length,
-          data: demoReservations,
-        });
+      return res.status(200).json({
+        success: true,
+        count: demoReservations.length,
+        data: demoReservations,
+      });
     }
 
     const reservations = await Reservation.find({ guest: req.user.id })
@@ -194,13 +192,11 @@ exports.getHostReservations = async (req, res) => {
       },
     );
     if (demoReservations.length || global.demoReservations) {
-      return res
-        .status(200)
-        .json({
-          success: true,
-          count: demoReservations.length,
-          data: demoReservations,
-        });
+      return res.status(200).json({
+        success: true,
+        count: demoReservations.length,
+        data: demoReservations,
+      });
     }
 
     // Find all accommodations owned by this host
@@ -252,6 +248,59 @@ exports.getReservation = async (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+};
+
+exports.updateReservationStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!["pending", "confirmed", "cancelled", "completed"].includes(status)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid reservation status" });
+    }
+
+    const demoReservation = (global.demoReservations || []).find(
+      (item) => item._id === req.params.id,
+    );
+    if (demoReservation) {
+      const accommodation = demoReservation.accommodation;
+      const ownerId =
+        typeof accommodation?.host === "object"
+          ? accommodation.host?._id
+          : accommodation?.host;
+      if (ownerId !== req.user.id) {
+        return res
+          .status(403)
+          .json({
+            success: false,
+            message: "Not authorized to update this reservation",
+          });
+      }
+      demoReservation.status = status;
+      return res.status(200).json({ success: true, data: demoReservation });
+    }
+
+    const reservation = await Reservation.findById(req.params.id).populate(
+      "accommodation",
+    );
+    if (!reservation)
+      return res
+        .status(404)
+        .json({ success: false, message: "Reservation not found" });
+    if (reservation.accommodation.host.toString() !== req.user.id) {
+      return res
+        .status(403)
+        .json({
+          success: false,
+          message: "Not authorized to update this reservation",
+        });
+    }
+    reservation.status = status;
+    await reservation.save();
+    res.status(200).json({ success: true, data: reservation });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

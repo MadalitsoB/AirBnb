@@ -19,6 +19,10 @@ const protect = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "secretkey");
+    if (!decoded.role && global.demoUsers) {
+      const demoUser = global.demoUsers.find((user) => user._id === decoded.id);
+      if (demoUser) decoded.role = demoUser.role;
+    }
     req.user = decoded;
     next();
   } catch (error) {

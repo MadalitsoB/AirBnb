@@ -231,6 +231,13 @@ global.demoUsers = [
     password: "student123",
     role: "user",
   },
+  {
+    _id: "demo-host",
+    username: "hostdemo",
+    email: "host@airbnb.com",
+    password: "host123",
+    role: "host",
+  },
 ];
 
 app.get("/", (req, res) => {

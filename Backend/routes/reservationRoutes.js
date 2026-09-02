@@ -5,6 +5,7 @@ const {
   getHostReservations,
   getReservation,
   deleteReservation,
+  updateReservationStatus,
 } = require("../controllers/reservationController");
 const { protect } = require("../middleware/authmiddleware");
 
@@ -24,6 +25,7 @@ router.post("/", protect, createReservation);
 router.get("/user", protect, getUserReservations);
 router.get("/host", protect, hostOnly, getHostReservations);
 router.get("/:id", protect, getReservation);
+router.patch("/:id/status", protect, hostOnly, updateReservationStatus);
 router.delete("/:id", protect, deleteReservation);
 
 module.exports = router;

@@ -162,6 +162,30 @@ exports.getAccommodation = async (req, res) => {
 // @access  Private (only host who owns it)
 exports.updateAccommodation = async (req, res) => {
   try {
+    const demoIndex = (global.demoListings || []).findIndex(
+      (item) => item._id === req.params.id,
+    );
+    if (demoIndex !== -1) {
+      const demoListing = global.demoListings[demoIndex];
+      if (demoListing.host !== req.user.id) {
+        return res
+          .status(403)
+          .json({
+            success: false,
+            message: "Not authorized to update this accommodation",
+          });
+      }
+      global.demoListings[demoIndex] = {
+        ...demoListing,
+        ...req.body,
+        _id: demoListing._id,
+        host: demoListing.host,
+      };
+      return res
+        .status(200)
+        .json({ success: true, data: global.demoListings[demoIndex] });
+    }
+
     let accommodation = await Accommodation.findById(req.params.id);
 
     if (!accommodation) {
@@ -206,6 +230,25 @@ exports.updateAccommodation = async (req, res) => {
 // @access  Private (only host who owns it)
 exports.deleteAccommodation = async (req, res) => {
   try {
+    const demoIndex = (global.demoListings || []).findIndex(
+      (item) => item._id === req.params.id,
+    );
+    if (demoIndex !== -1) {
+      const demoListing = global.demoListings[demoIndex];
+      if (demoListing.host !== req.user.id) {
+        return res
+          .status(403)
+          .json({
+            success: false,
+            message: "Not authorized to delete this accommodation",
+          });
+      }
+      global.demoListings.splice(demoIndex, 1);
+      return res
+        .status(200)
+        .json({ success: true, message: "Accommodation deleted successfully" });
+    }
+
     const accommodation = await Accommodation.findById(req.params.id);
 
     if (!accommodation) {

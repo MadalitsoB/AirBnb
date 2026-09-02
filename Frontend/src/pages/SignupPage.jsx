@@ -1,10 +1,16 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { apiFetch } from "../services/api";
 
 function SignupPage() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ username: "", email: "", password: "", role: "user" });
+  const [searchParams] = useSearchParams();
+  const [form, setForm] = useState({
+    username: "",
+    email: "",
+    password: "",
+    role: searchParams.get("role") === "host" ? "host" : "user",
+  });
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 

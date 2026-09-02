@@ -32,7 +32,7 @@ exports.register = async (req, res) => {
       username,
       email,
       password,
-      role: role || "user",
+      role: role === "host" ? "host" : "user",
     };
 
     users.push(newUser);

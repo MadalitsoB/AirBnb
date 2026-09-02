@@ -29,6 +29,7 @@ function Navbar() {
   const [week, setWeek] = useState("Any week");
   const [guests, setGuests] = useState("Add guests");
   const token = localStorage.getItem("airbnbToken");
+  const user = JSON.parse(localStorage.getItem("airbnbUser") || "null");
 
   const handleLogout = () => {
     localStorage.removeItem("airbnbToken");
@@ -117,8 +118,11 @@ function Navbar() {
 
         {/* Right side */}
         <div className="navbar__right">
-          <Link to="/listings" className="navbar__host-link">
-            Airbnb your home
+          <Link
+            to={user?.role === "host" ? "/host" : "/host/login"}
+            className="navbar__host-link"
+          >
+            {user?.role === "host" ? "Host dashboard" : "Airbnb your home"}
           </Link>
 
           <button className="navbar__globe" aria-label="Language">
@@ -146,6 +150,15 @@ function Navbar() {
               <div className="navbar__dropdown">
                 {token ? (
                   <>
+                    {user?.role === "host" && (
+                      <Link
+                        to="/host"
+                        className="navbar__dropdown-item"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        Host dashboard
+                      </Link>
+                    )}
                     <Link
                       to="/listings"
                       className="navbar__dropdown-item"
@@ -178,7 +191,7 @@ function Navbar() {
                     </Link>
                     <hr className="navbar__dropdown-hr" />
                     <Link
-                      to="/listings"
+                      to="/host/login"
                       className="navbar__dropdown-item"
                       onClick={() => setMenuOpen(false)}
                     >

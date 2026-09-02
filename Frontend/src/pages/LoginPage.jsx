@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { apiFetch } from "../services/api";
 
-function LoginPage() {
+function LoginPage({ hostMode = false }) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isHostLogin = hostMode || searchParams.get("role") === "host";
   const [form, setForm] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,7 +24,15 @@ function LoginPage() {
       });
       localStorage.setItem("airbnbToken", data.token);
       localStorage.setItem("airbnbUser", JSON.stringify(data.user));
-      navigate(["host", "admin"].includes(data.user?.role) ? "/host" : "/listings");
+      if (isHostLogin && !["host", "admin"].includes(data.user?.role)) {
+        setMessage(
+          "This is a guest account. Create a host account to publish listings.",
+        );
+        return;
+      }
+      navigate(
+        ["host", "admin"].includes(data.user?.role) ? "/host" : "/listings",
+      );
     } catch (error) {
       setMessage(error.message || "Login failed");
     } finally {
@@ -52,7 +62,9 @@ function LoginPage() {
         </div>
 
         <div className="auth-modal__body">
-          <h2 className="auth-modal__heading">Welcome to Airbnb</h2>
+          <h2 className="auth-modal__heading">
+            {isHostLogin ? "Log in to host on Airbnb" : "Welcome to Airbnb"}
+          </h2>
 
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="auth-input-group">
@@ -134,7 +146,10 @@ function LoginPage() {
 
           <p className="auth-switch">
             Don't have an account?{" "}
-            <Link to="/signup" className="auth-link">
+            <Link
+              to={isHostLogin ? "/signup?role=host" : "/signup"}
+              className="auth-link"
+            >
               Sign up
             </Link>
           </p>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { apiFetch } from "../services/api";
 
@@ -60,7 +60,6 @@ function ListingDetailsPage() {
   const { id } = useParams();
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeImg, setActiveImg] = useState(0);
   const [showAllPhotos, setShowAllPhotos] = useState(false);
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
@@ -158,7 +157,6 @@ function ListingDetailsPage() {
     localStorage.setItem(`listing-images-${id}`, JSON.stringify(nextImages));
     setCustomImages(nextImages);
     setPhotoError("");
-    setActiveImg(0);
     setShowPhotoEditor(false);
   };
 
@@ -167,7 +165,6 @@ function ListingDetailsPage() {
     setCustomImages([]);
     setPhotoDraft(images.join("\n"));
     setPhotoError("");
-    setActiveImg(0);
   };
 
   const maxGuests = Math.max(10, Number(item.guests) || 10);
@@ -194,7 +191,12 @@ function ListingDetailsPage() {
     document.getElementById("reviews")?.focus({ preventScroll: true });
   };
 
-  const handleReserve = () => {
+  const handleReserve = async () => {
+    if (!localStorage.getItem("airbnbToken")) {
+      setReservationMessage("Log in or sign up before reserving this stay.");
+      return;
+    }
+
     if (!checkIn || !checkOut) {
       setReservationMessage("Choose your check-in and checkout dates first.");
       return;
@@ -205,9 +207,32 @@ function ListingDetailsPage() {
       return;
     }
 
-    setReservationMessage(
-      `Your request for ${guests} guest${guests === 1 ? "" : "s"} is ready to confirm.`,
-    );
+    try {
+      await apiFetch("/reservations", {
+        method: "POST",
+        body: JSON.stringify({
+          accommodation: item._id,
+          checkInDate: checkIn,
+          checkOutDate: checkOut,
+          numberOfGuests: guests,
+          priceBreakdown: {
+            nightlyRate: item.price || 2500,
+            numberOfNights: nights,
+            subtotal,
+            weeklyDiscount: 0,
+            cleaningFee,
+            serviceFee,
+            occupancyTaxes: 0,
+            total,
+          },
+        }),
+      });
+      setReservationMessage(
+        `Your request for ${guests} guest${guests === 1 ? "" : "s"} is ready to confirm.`,
+      );
+    } catch (error) {
+      setReservationMessage(error.message || "Could not create reservation.");
+    }
   };
 
   return (
@@ -558,17 +583,17 @@ function ListingDetailsPage() {
                   "Communication",
                   "Location",
                   "Value",
-                ].map((cat) => (
+                ].map((cat, index) => (
                   <div key={cat} className="review-bar">
                     <span className="review-bar__label">{cat}</span>
                     <div className="review-bar__track">
                       <div
                         className="review-bar__fill"
-                        style={{ width: `${85 + Math.random() * 15}%` }}
+                        style={{ width: `${90 + (index % 3) * 3}%` }}
                       />
                     </div>
                     <span className="review-bar__score">
-                      4.{Math.floor(Math.random() * 2 + 8)}
+                      4.{index % 2 === 0 ? "9" : "8"}
                     </span>
                   </div>
                 ))}
