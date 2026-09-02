@@ -40,6 +40,31 @@ exports.createAccommodation = async (req, res) => {
       });
     }
 
+    if (global.demoMode !== false) {
+      const accommodation = {
+        _id: `demo-${Date.now()}`,
+        title,
+        description,
+        location,
+        type,
+        price: Number(price),
+        bedrooms: Number(bedrooms),
+        bathrooms: Number(bathrooms),
+        guests: Number(guests),
+        amenities: amenities || [],
+        images: images || [],
+        weeklyDiscount: Number(weeklyDiscount || 0),
+        cleaningFee: Number(cleaningFee || 500),
+        serviceFee: Number(serviceFee || 1050),
+        occupancyTaxes: Number(occupancyTaxes || 0),
+        rating: 0,
+        reviews: 0,
+        host: req.user.id,
+      };
+      global.demoListings.push(accommodation);
+      return res.status(201).json({ success: true, data: accommodation });
+    }
+
     // Create accommodation with host ID from authenticated user
     const accommodation = await Accommodation.create({
       title,

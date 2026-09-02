@@ -29,8 +29,8 @@ const protect = (req, res, next) => {
   }
 };
 
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || "secretkey", {
+const generateToken = (id, role = "user") => {
+  return jwt.sign({ id, role }, process.env.JWT_SECRET || "secretkey", {
     expiresIn: process.env.JWT_EXPIRE || "7d",
   });
 };

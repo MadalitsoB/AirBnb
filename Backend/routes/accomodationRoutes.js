@@ -9,6 +9,14 @@ const {
 const { protect } = require("../middleware/authmiddleware");
 
 const router = express.Router();
+const hostOnly = (req, res, next) => {
+  if (!["host", "admin"].includes(req.user?.role)) {
+    return res
+      .status(403)
+      .json({ success: false, message: "Host access required" });
+  }
+  next();
+};
 
 router.get("/", (req, res) => {
   res.json({
@@ -33,8 +41,8 @@ router.get("/:id", (req, res) => {
   res.json({ success: true, data: listing });
 });
 
-router.post("/", protect, createAccommodation);
-router.put("/:id", protect, updateAccommodation);
-router.delete("/:id", protect, deleteAccommodation);
+router.post("/", protect, hostOnly, createAccommodation);
+router.put("/:id", protect, hostOnly, updateAccommodation);
+router.delete("/:id", protect, hostOnly, deleteAccommodation);
 
 module.exports = router;

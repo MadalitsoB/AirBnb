@@ -38,7 +38,7 @@ exports.register = async (req, res) => {
     users.push(newUser);
     global.demoUsers = users;
 
-    const token = generateToken(id);
+    const token = generateToken(id, newUser.role);
 
     res.status(201).json({
       success: true,
@@ -78,7 +78,7 @@ exports.login = async (req, res) => {
       });
     }
 
-    const token = generateToken(user._id);
+    const token = generateToken(user._id, user.role);
 
     res.status(200).json({
       success: true,

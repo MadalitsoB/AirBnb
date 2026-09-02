@@ -21,7 +21,8 @@ function LoginPage() {
         body: JSON.stringify(form),
       });
       localStorage.setItem("airbnbToken", data.token);
-      navigate("/listings");
+      localStorage.setItem("airbnbUser", JSON.stringify(data.user));
+      navigate(["host", "admin"].includes(data.user?.role) ? "/host" : "/listings");
     } catch (error) {
       setMessage(error.message || "Login failed");
     } finally {

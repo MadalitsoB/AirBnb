@@ -4,6 +4,7 @@ import ListingsPage from "./pages/ListingsPage";
 import ListingDetailsPage from "./pages/ListingDetailsPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import HostDashboard from "./pages/HostDashboard";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/listings/:id" element={<ListingDetailsPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/host" element={<HostDashboard />} />
       </Routes>
     </BrowserRouter>
   );

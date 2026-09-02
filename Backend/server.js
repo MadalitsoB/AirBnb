@@ -5,6 +5,7 @@ const OpenAI = require("openai");
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 const accommodationRoutes = require("./routes/accomodationRoutes");
+const reservationRoutes = require("./routes/reservationRoutes");
 
 dotenv.config();
 
@@ -221,6 +222,7 @@ const sampleListings = [
 ];
 
 global.demoListings = sampleListings;
+global.demoReservations = [];
 global.demoUsers = [
   {
     _id: "demo-user",
@@ -241,6 +243,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/users", userRoutes);
 app.use("/api/accommodations", accommodationRoutes);
+app.use("/api/reservations", reservationRoutes);
 
 app.post("/api/chat", async (req, res) => {
   try {

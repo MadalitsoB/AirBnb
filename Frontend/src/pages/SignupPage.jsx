@@ -4,7 +4,7 @@ import { apiFetch } from "../services/api";
 
 function SignupPage() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ username: "", email: "", password: "" });
+  const [form, setForm] = useState({ username: "", email: "", password: "", role: "user" });
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -21,7 +21,8 @@ function SignupPage() {
         body: JSON.stringify(form),
       });
       localStorage.setItem("airbnbToken", data.token);
-      navigate("/listings");
+      localStorage.setItem("airbnbUser", JSON.stringify(data.user));
+      navigate(data.user?.role === "host" ? "/host" : "/listings");
     } catch (error) {
       setMessage(error.message || "Signup failed");
     } finally {
@@ -73,6 +74,15 @@ function SignupPage() {
                 required
                 className="auth-input auth-input--mid"
               />
+              <select
+                name="role"
+                value={form.role}
+                onChange={handleChange}
+                className="auth-input auth-input--mid"
+              >
+                <option value="user">I am looking for a place</option>
+                <option value="host">I want to host a place</option>
+              </select>
               <input
                 type="password"
                 name="password"

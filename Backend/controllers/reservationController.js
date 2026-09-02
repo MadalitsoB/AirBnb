@@ -23,8 +23,11 @@ exports.createReservation = async (req, res) => {
       });
     }
 
-    // Check if accommodation exists
-    const accommodationData = await Accommodation.findById(accommodation);
+    const demoAccommodation = (global.demoListings || []).find(
+      (item) => item._id === String(accommodation),
+    );
+    const accommodationData =
+      demoAccommodation || (await Accommodation.findById(accommodation));
     if (!accommodationData) {
       return res.status(404).json({
         success: false,
@@ -64,6 +67,35 @@ exports.createReservation = async (req, res) => {
 
       totalPrice =
         subtotal - weeklyDiscount + cleaningFee + serviceFee + occupancyTaxes;
+    }
+
+    if (demoAccommodation) {
+      const reservation = {
+        _id: `demo-reservation-${Date.now()}`,
+        accommodation: demoAccommodation,
+        guest: (global.demoUsers || []).find(
+          (user) => user._id === req.user.id,
+        ) || { _id: req.user.id },
+        checkInDate,
+        checkOutDate,
+        numberOfGuests,
+        totalPrice,
+        status: "pending",
+        paymentStatus: "pending",
+        priceBreakdown: priceBreakdown || {
+          nightlyRate: accommodationData.price,
+          numberOfNights,
+          subtotal: accommodationData.price * numberOfNights,
+          weeklyDiscount: 0,
+          cleaningFee: accommodationData.cleaningFee || 500,
+          serviceFee: accommodationData.serviceFee || 1050,
+          occupancyTaxes: accommodationData.occupancyTaxes || 0,
+          total: totalPrice,
+        },
+      };
+      global.demoReservations = global.demoReservations || [];
+      global.demoReservations.push(reservation);
+      return res.status(201).json({ success: true, data: reservation });
     }
 
     // Create reservation
@@ -109,6 +141,21 @@ exports.createReservation = async (req, res) => {
 // @access  Private
 exports.getUserReservations = async (req, res) => {
   try {
+    const demoReservations = (global.demoReservations || []).filter(
+      (reservation) =>
+        reservation.guest?._id === req.user.id ||
+        reservation.guest === req.user.id,
+    );
+    if (demoReservations.length || global.demoReservations) {
+      return res
+        .status(200)
+        .json({
+          success: true,
+          count: demoReservations.length,
+          data: demoReservations,
+        });
+    }
+
     const reservations = await Reservation.find({ guest: req.user.id })
       .populate("accommodation")
       .populate("guest", "username email");
@@ -131,6 +178,31 @@ exports.getUserReservations = async (req, res) => {
 // @access  Private
 exports.getHostReservations = async (req, res) => {
   try {
+    const hostListings = (global.demoListings || []).filter((listing) => {
+      const ownerId =
+        typeof listing.host === "object" ? listing.host?._id : listing.host;
+      return ownerId === req.user.id;
+    });
+    const hostListingIds = new Set(hostListings.map((listing) => listing._id));
+    const demoReservations = (global.demoReservations || []).filter(
+      (reservation) => {
+        const accommodationId =
+          typeof reservation.accommodation === "object"
+            ? reservation.accommodation?._id
+            : reservation.accommodation;
+        return hostListingIds.has(accommodationId);
+      },
+    );
+    if (demoReservations.length || global.demoReservations) {
+      return res
+        .status(200)
+        .json({
+          success: true,
+          count: demoReservations.length,
+          data: demoReservations,
+        });
+    }
+
     // Find all accommodations owned by this host
     const accommodations = await Accommodation.find({ host: req.user.id });
     const accommodationIds = accommodations.map((acc) => acc._id);

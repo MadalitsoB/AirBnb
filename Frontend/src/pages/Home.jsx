@@ -82,7 +82,9 @@ function Home() {
   const handleGiftCardPurchase = (event) => {
     event.preventDefault();
     if (!giftEmail.trim()) return;
-    setGiftMessage(`Your R${giftAmount.toLocaleString()} gift card is ready for ${giftEmail}.`);
+    setGiftMessage(
+      `Your R${giftAmount.toLocaleString()} gift card is ready for ${giftEmail}.`,
+    );
   };
 
   return (
@@ -194,7 +196,10 @@ function Home() {
             aria-labelledby="gift-modal-title"
             onClick={() => setShowGiftCards(false)}
           >
-            <div className="gift-modal__panel" onClick={(event) => event.stopPropagation()}>
+            <div
+              className="gift-modal__panel"
+              onClick={(event) => event.stopPropagation()}
+            >
               <div className="gift-modal__header">
                 <div>
                   <p className="gift-modal__eyebrow">Airbnb gift cards</p>
@@ -212,7 +217,9 @@ function Home() {
               {giftMessage ? (
                 <div className="gift-modal__success" role="status">
                   <strong>{giftMessage}</strong>
-                  <button type="button" onClick={() => setShowGiftCards(false)}>Done</button>
+                  <button type="button" onClick={() => setShowGiftCards(false)}>
+                    Done
+                  </button>
                 </div>
               ) : (
                 <form onSubmit={handleGiftCardPurchase}>
@@ -222,14 +229,20 @@ function Home() {
                       <button
                         type="button"
                         key={amount}
-                        className={giftAmount === amount ? "gift-modal__amount gift-modal__amount--active" : "gift-modal__amount"}
+                        className={
+                          giftAmount === amount
+                            ? "gift-modal__amount gift-modal__amount--active"
+                            : "gift-modal__amount"
+                        }
                         onClick={() => setGiftAmount(amount)}
                       >
                         R{amount.toLocaleString()}
                       </button>
                     ))}
                   </div>
-                  <label className="gift-modal__label" htmlFor="gift-email">Recipient email</label>
+                  <label className="gift-modal__label" htmlFor="gift-email">
+                    Recipient email
+                  </label>
                   <input
                     id="gift-email"
                     type="email"
@@ -238,7 +251,9 @@ function Home() {
                     onChange={(event) => setGiftEmail(event.target.value)}
                     placeholder="friend@example.com"
                   />
-                  <button type="submit" className="gift-modal__submit">Continue to purchase</button>
+                  <button type="submit" className="gift-modal__submit">
+                    Continue to purchase
+                  </button>
                 </form>
               )}
             </div>
