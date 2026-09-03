@@ -27,38 +27,46 @@ function HostDashboard() {
   const loadDashboard = useCallback(async () => {
     try {
       const me = await apiFetch("/users/me");
-      if (!["host", "admin"].includes(me.data?.role)) {
-        navigate("/listings");
+
+      // Hard block — guests cannot access this page at all
+      if (!me.data || !["host", "admin"].includes(me.data.role)) {
+        navigate("/", { replace: true });
         return;
       }
+
       setUser(me.data);
+
       const [listingResponse, reservationResponse] = await Promise.all([
         apiFetch("/accommodations"),
         apiFetch("/reservations/host"),
       ]);
+
+      // Only show this host's own listings
       const ownedListings = (listingResponse.data || []).filter((listing) => {
         const ownerId =
-          typeof listing.host === "object" ? listing.host?._id : listing.host;
-        return ownerId === me.data.id;
+          typeof listing.host === "object"
+            ? listing.host?._id?.toString()
+            : listing.host?.toString();
+        return ownerId === me.data.id?.toString();
       });
+
       setListings(ownedListings);
       setReservations(reservationResponse.data || []);
-    } catch (loadError) {
-      setError(loadError.message || "Please log in as a host to continue.");
+    } catch {
+      // No valid token or network error — send to login
+      navigate("/login", { replace: true });
     }
   }, [navigate]);
 
   useEffect(() => {
-    const dashboardTask = setTimeout(() => loadDashboard(), 0);
-    return () => clearTimeout(dashboardTask);
+    loadDashboard();
   }, [loadDashboard]);
 
-  const handleChange = (event) => {
-    setForm({ ...form, [event.target.name]: event.target.value });
-  };
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setMessage("");
     setError("");
     try {
@@ -72,54 +80,58 @@ function HostDashboard() {
           guests: Number(form.guests),
           images: form.images
             .split(/\r?\n|,/)
-            .map((image) => image.trim())
+            .map((img) => img.trim())
             .filter(Boolean),
         }),
       });
       setForm(initialForm);
-      setMessage("Your listing is now live.");
+      setMessage("Your listing is now live and visible to guests.");
       loadDashboard();
-    } catch (createError) {
-      setError(createError.message || "Could not create listing.");
+    } catch (err) {
+      setError(err.message || "Could not create listing.");
     }
   };
 
-  const handleDeleteListing = async (listingId) => {
-    if (!window.confirm("Delete this listing?")) return;
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this listing? This cannot be undone.")) return;
     try {
-      await apiFetch(`/accommodations/${listingId}`, { method: "DELETE" });
+      await apiFetch(`/accommodations/${id}`, { method: "DELETE" });
       setMessage("Listing deleted.");
       loadDashboard();
-    } catch (deleteError) {
-      setError(deleteError.message || "Could not delete listing.");
+    } catch (err) {
+      setError(err.message || "Could not delete listing.");
     }
   };
 
-  const handleReservationStatus = async (reservationId, status) => {
+  const handleReservationStatus = async (id, status) => {
     try {
-      await apiFetch(`/reservations/${reservationId}/status`, {
+      await apiFetch(`/reservations/${id}/status`, {
         method: "PATCH",
         body: JSON.stringify({ status }),
       });
       setMessage(`Reservation ${status}.`);
       loadDashboard();
-    } catch (statusError) {
-      setError(statusError.message || "Could not update reservation.");
+    } catch (err) {
+      setError(err.message || "Could not update reservation.");
     }
   };
+
+  // Show nothing while auth check runs
+  if (!user) return null;
 
   return (
     <div className="host-page">
       <Navbar />
       <main className="host-dashboard">
+
         <div className="host-dashboard__heading">
           <div>
             <p className="host-dashboard__eyebrow">Host workspace</p>
-            <h1>Welcome{user?.username ? `, ${user.username}` : ""}</h1>
-            <p>Manage your stays and keep an eye on upcoming guests.</p>
+            <h1>Welcome, {user.username}</h1>
+            <p>Create and manage your South African listings.</p>
           </div>
           <Link to="/listings" className="host-dashboard__browse">
-            Browse stays
+            Preview guest view
           </Link>
         </div>
 
@@ -136,18 +148,18 @@ function HostDashboard() {
             <span>Reservations</span>
           </div>
           <div>
-            <strong>
-              {reservations.filter((item) => item.status === "pending").length}
-            </strong>
+            <strong>{reservations.filter((r) => r.status === "pending").length}</strong>
             <span>Awaiting response</span>
           </div>
         </div>
 
         <div className="host-dashboard__grid">
+
+          {/* Create listing form */}
           <section className="host-panel">
-            <h2>Create a listing</h2>
+            <h2>Create a new listing</h2>
             <p className="host-panel__hint">
-              Add a stay for guests to discover in South Africa.
+              Fill in the details below and hit Publish. Your listing will immediately appear on the guest listings page.
             </p>
             <form className="host-form" onSubmit={handleSubmit}>
               <input
@@ -161,16 +173,16 @@ function HostDashboard() {
                 name="location"
                 value={form.location}
                 onChange={handleChange}
-                placeholder="Location, e.g. Sandton, South Africa"
+                placeholder="Location — e.g. Sandton, Johannesburg"
                 required
               />
               <textarea
                 name="description"
                 value={form.description}
                 onChange={handleChange}
-                placeholder="Describe the space"
+                placeholder="Describe the space for guests"
                 required
-                rows="4"
+                rows={4}
               />
               <select name="type" value={form.type} onChange={handleChange}>
                 <option>Entire apartment</option>
@@ -194,7 +206,7 @@ function HostDashboard() {
                   min="1"
                   value={form.guests}
                   onChange={handleChange}
-                  placeholder="Guests"
+                  placeholder="Max guests"
                   required
                 />
               </div>
@@ -222,8 +234,8 @@ function HostDashboard() {
                 name="images"
                 value={form.images}
                 onChange={handleChange}
-                placeholder="Image URLs, one per line"
-                rows="3"
+                placeholder="Image URLs — one per line or comma-separated"
+                rows={3}
               />
               <button type="submit" className="host-form__submit">
                 Publish listing
@@ -231,56 +243,31 @@ function HostDashboard() {
             </form>
           </section>
 
+          {/* Reservations panel */}
           <section className="host-panel">
             <h2>Reservations</h2>
             {reservations.length === 0 ? (
               <p className="host-panel__empty">
-                No reservations yet. They will appear here when a guest books
-                one of your stays.
+                No reservations yet. They'll appear here when guests book your stays.
               </p>
             ) : (
               <div className="reservation-list">
-                {reservations.map((reservation) => (
-                  <article key={reservation._id} className="reservation-item">
+                {reservations.map((r) => (
+                  <article key={r._id} className="reservation-item">
                     <div>
-                      <strong>
-                        {reservation.accommodation?.title || "Your listing"}
-                      </strong>
-                      <p>
-                        {reservation.checkInDate} to {reservation.checkOutDate}
-                      </p>
-                      <p>
-                        {reservation.numberOfGuests} guest
-                        {reservation.numberOfGuests === 1 ? "" : "s"}
-                      </p>
+                      <strong>{r.accommodation?.title || "Your listing"}</strong>
+                      <p>{r.checkInDate} → {r.checkOutDate}</p>
+                      <p>{r.numberOfGuests} guest{r.numberOfGuests === 1 ? "" : "s"}</p>
                     </div>
-                    <span
-                      className={`reservation-status reservation-status--${reservation.status}`}
-                    >
-                      {reservation.status}
+                    <span className={`reservation-status reservation-status--${r.status}`}>
+                      {r.status}
                     </span>
-                    {reservation.status === "pending" && (
+                    {r.status === "pending" && (
                       <div className="reservation-item__actions">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleReservationStatus(
-                              reservation._id,
-                              "confirmed",
-                            )
-                          }
-                        >
+                        <button type="button" onClick={() => handleReservationStatus(r._id, "confirmed")}>
                           Approve
                         </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleReservationStatus(
-                              reservation._id,
-                              "cancelled",
-                            )
-                          }
-                        >
+                        <button type="button" onClick={() => handleReservationStatus(r._id, "cancelled")}>
                           Decline
                         </button>
                       </div>
@@ -292,34 +279,41 @@ function HostDashboard() {
           </section>
         </div>
 
+        {/* Your listings */}
         <section className="host-panel host-panel--listings">
-          <h2>Your listings</h2>
+          <h2>Your published listings</h2>
           {listings.length === 0 ? (
             <p className="host-panel__empty">
-              Your published listings will appear here.
+              No listings yet. Use the form above to create your first one.
             </p>
           ) : (
             <div className="host-listing-list">
-              {listings.map((listing) => (
-                <article key={listing._id} className="host-listing-item">
-                  <div>
-                    <strong>{listing.title}</strong>
-                    <p>
-                      {listing.location} · R
-                      {Number(listing.price).toLocaleString()} per night
+              {listings.map((l) => (
+                <article key={l._id} className="host-listing-item">
+                  {l.images?.[0] && (
+                    <img src={l.images[0]} alt={l.title} className="host-listing-item__img" />
+                  )}
+                  <div className="host-listing-item__body">
+                    <strong>{l.title}</strong>
+                    <p>{l.location}</p>
+                    <p className="host-listing-item__price">
+                      R{Number(l.price).toLocaleString()} / night
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteListing(listing._id)}
-                  >
-                    Delete
-                  </button>
+                  <div className="host-listing-item__actions">
+                    <Link to={`/listings/${l._id}`} className="host-listing-item__preview">
+                      Preview
+                    </Link>
+                    <button type="button" className="host-listing-item__delete" onClick={() => handleDelete(l._id)}>
+                      Delete
+                    </button>
+                  </div>
                 </article>
               ))}
             </div>
           )}
         </section>
+
       </main>
     </div>
   );

@@ -108,10 +108,11 @@ select {
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 0;
-  overflow: hidden;
+  overflow: visible; /* must be visible so dropdowns escape the pill */
   box-shadow: var(--shadow-sm);
   transition: box-shadow 0.2s;
   background: white;
+  position: relative;
 }
 
 .navbar__search-pill:hover {
@@ -2336,4 +2337,555 @@ select {
     gap: 12px;
     text-align: center;
   }
+}
+
+/* ─── Auth Role Toggle ───────────────────────────────────────── */
+.auth-role-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.auth-role-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 12px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  text-align: center;
+}
+
+.auth-role-btn:hover {
+  border-color: #aaa;
+  box-shadow: var(--shadow-sm);
+}
+
+.auth-role-btn__icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.auth-role-btn__label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.auth-role-btn__sub {
+  font-size: 0.75rem;
+  color: var(--text-soft);
+  line-height: 1.3;
+}
+
+/* Guest active state — blue tint */
+.auth-role-btn--active.auth-role-btn--guest {
+  border-color: #0066cc;
+  background: #f0f6ff;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.12);
+}
+
+.auth-role-btn--active.auth-role-btn--guest .auth-role-btn__label {
+  color: #0066cc;
+}
+
+/* Host active state — red/airbnb tint */
+.auth-role-btn--active.auth-role-btn--host {
+  border-color: var(--airbnb-red);
+  background: #fff0f2;
+  box-shadow: 0 0 0 3px rgba(255, 56, 92, 0.12);
+}
+
+.auth-role-btn--active.auth-role-btn--host .auth-role-btn__label {
+  color: var(--airbnb-red);
+}
+
+/* Context banner */
+.auth-context-banner {
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.auth-context-banner strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 2px;
+}
+
+.auth-context-banner p {
+  color: inherit;
+  opacity: 0.85;
+}
+
+.auth-context-banner--guest {
+  background: #f0f6ff;
+  border: 1px solid #b3d0f7;
+  color: #0055aa;
+}
+
+.auth-context-banner--host {
+  background: #fff0f2;
+  border: 1px solid #ffb3c1;
+  color: #c0003c;
+}
+
+/* Host submit button override */
+.auth-submit-btn--host {
+  background: linear-gradient(to right, #222222, #444444);
+}
+
+/* ─── Navbar avatar initial ─────────────────────────────────── */
+.navbar__avatar-initial {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--airbnb-red), var(--airbnb-red-dark));
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: 50%;
+}
+
+/* Dropdown role badge */
+.navbar__dropdown-role {
+  padding: 10px 18px 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-soft);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.navbar__dropdown-item--logout {
+  color: #c0003c;
+}
+
+/* ─── Host listing item image + preview button ───────────────── */
+.host-listing-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.host-listing-item:last-child { border-bottom: none; }
+
+.host-listing-item__img {
+  width: 72px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.host-listing-item__body {
+  flex: 1;
+  min-width: 0;
+}
+.host-listing-item__body strong {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.host-listing-item__body p {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+}
+.host-listing-item__price {
+  font-size: 0.85rem !important;
+  color: var(--text) !important;
+  font-weight: 600 !important;
+}
+
+.host-listing-item__actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.host-listing-item__preview {
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  transition: background 0.15s;
+}
+.host-listing-item__preview:hover { background: var(--bg-grey); }
+
+.host-listing-item__delete {
+  padding: 7px 14px;
+  border: 1px solid #ffb3c1;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #c0003c;
+  background: #fff0f2;
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.host-listing-item__delete:hover { background: #ffe0e8; }
+
+/* ─── Search pill — new field layout ────────────────────────── */
+.navbar__search-field {
+  position: relative;
+}
+
+.navbar__search-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 10px 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  min-width: 120px;
+  transition: background 0.15s;
+  border-radius: 999px;
+}
+.navbar__search-option:hover,
+.navbar__search-option--active {
+  background: #f0f0f0;
+}
+
+.navbar__search-option--date {
+  cursor: pointer;
+}
+
+.navbar__search-option--guests {
+  min-width: 110px;
+}
+
+.navbar__search-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  text-transform: uppercase;
+  line-height: 1;
+  margin-bottom: 3px;
+  pointer-events: none;
+}
+
+.navbar__search-value {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.navbar__search-value--placeholder {
+  color: var(--text-soft);
+  font-weight: 400;
+}
+
+/* Hide the native date input but keep it functional */
+.navbar__date-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: none;
+  z-index: 2;
+}
+
+/* Location dropdown */
+.search-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+  border: 1px solid var(--border);
+  z-index: 500;
+  overflow: hidden;
+  min-width: 280px;
+}
+
+.search-dropdown--location {
+  min-width: 300px;
+}
+
+.search-dropdown--guests {
+  min-width: 300px;
+  right: 0;
+  left: auto;
+}
+
+.search-dropdown__title {
+  padding: 14px 16px 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+/* Scrollable list */
+.search-dropdown__list {
+  max-height: 280px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.search-dropdown__empty {
+  padding: 16px;
+  font-size: 0.875rem;
+  color: var(--text-soft);
+  text-align: center;
+}
+
+/* Inline search box inside dropdown */
+.search-dropdown__search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 12px 4px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-grey);
+}
+
+.search-dropdown__search-input {
+  flex: 1;
+  border: none;
+  background: none;
+  font-size: 0.875rem;
+  color: var(--text);
+  outline: none;
+}
+.search-dropdown__search-input::placeholder { color: var(--text-soft); }
+
+.search-dropdown__search-clear {
+  font-size: 1rem;
+  color: var(--text-soft);
+  background: none;
+  border: none;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 2px;
+}
+.search-dropdown__search-clear:hover { color: var(--text); }
+
+.search-dropdown__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 16px;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.search-dropdown__item:hover { background: var(--bg-grey); }
+.search-dropdown__item--active {
+  background: #fff0f2;
+  color: var(--airbnb-red);
+}
+
+.search-dropdown__item-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.search-dropdown__item-text {
+  flex: 1;
+  text-align: left;
+}
+
+.search-dropdown__clear {
+  width: 100%;
+  padding: 11px 16px;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--airbnb-red);
+  border: none;
+  border-top: 1px solid var(--border);
+  background: none;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.search-dropdown__clear:hover { background: #fff0f2; }
+
+/* Guests counter */
+.guests-counter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px;
+  gap: 16px;
+}
+
+.guests-counter__label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.guests-counter__sub {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  margin-top: 2px;
+}
+
+.guests-counter__controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.guests-counter__btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.guests-counter__btn:hover:not(:disabled) {
+  border-color: var(--text);
+  color: var(--text);
+}
+.guests-counter__btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.guests-counter__num {
+  font-size: 1rem;
+  font-weight: 600;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* Hide search pill for host accounts */
+.navbar__search--hidden {
+  display: none;
+}
+
+/* ─── Mini Calendar ──────────────────────────────────────────── */
+.search-dropdown--calendar {
+  min-width: 280px;
+  padding-bottom: 8px;
+}
+
+.mini-cal {
+  padding: 12px 16px 4px;
+  user-select: none;
+}
+
+.mini-cal__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.mini-cal__heading {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.mini-cal__nav-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: white;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  transition: background 0.15s;
+}
+.mini-cal__nav-btn:hover { background: var(--bg-grey); }
+
+.mini-cal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.mini-cal__dow {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-soft);
+  padding: 4px 0;
+  letter-spacing: 0.04em;
+}
+
+.mini-cal__day {
+  width: 100%;
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  font-size: 0.82rem;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mini-cal__day:hover:not(:disabled) {
+  background: var(--bg-grey);
+}
+.mini-cal__day--today {
+  font-weight: 800;
+  border: 1.5px solid var(--text-soft);
+}
+.mini-cal__day--selected {
+  background: var(--airbnb-red) !important;
+  color: white !important;
+  font-weight: 700;
+}
+.mini-cal__day--disabled {
+  color: var(--text-lighter);
+  cursor: not-allowed;
+}
+
+/* ─── Guests divider ─────────────────────────────────────────── */
+.guests-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0 16px;
 }

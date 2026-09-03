@@ -1,8 +1,9 @@
 const Accommodation = require("../models/accommodation");
+const User = require("../models/user");
 
 // @desc    Create accommodation listing
 // @route   POST /api/accommodations
-// @access  Private (only logged-in hosts)
+// @access  Private (any logged-in user — auto-promoted to host)
 exports.createAccommodation = async (req, res) => {
   try {
     const {
@@ -40,6 +41,11 @@ exports.createAccommodation = async (req, res) => {
       });
     }
 
+    // Auto-promote user to host if they aren't already
+    if (req.user.role !== "host" && req.user.role !== "admin") {
+      await User.findByIdAndUpdate(req.user.id, { role: "host" });
+    }
+
     // Create accommodation with host ID from authenticated user
     const accommodation = await Accommodation.create({
       title,
@@ -56,7 +62,7 @@ exports.createAccommodation = async (req, res) => {
       cleaningFee: cleaningFee || 0,
       serviceFee: serviceFee || 0,
       occupancyTaxes: occupancyTaxes || 0,
-      host: req.user.id, // Set host to current logged-in user
+      host: req.user.id,
     });
 
     res.status(201).json({

@@ -145,11 +145,19 @@ function ListingsPage() {
   useEffect(() => {
     apiFetch("/accommodations")
       .then((data) => {
-        const items = data?.data || data || [];
-        if (Array.isArray(items) && items.length > 0) setListings(items);
-        else setListings(FALLBACK);
+        // API response is { success: true, data: [...] }
+        const items = Array.isArray(data?.data)
+          ? data.data
+          : Array.isArray(data)
+          ? data
+          : [];
+        // Always prefer real API data; only fall back if API returned nothing
+        setListings(items.length > 0 ? items : FALLBACK);
       })
-      .catch(() => setListings(FALLBACK))
+      .catch(() => {
+        // API unreachable — use fallback so page isn't blank
+        setListings(FALLBACK);
+      })
       .finally(() => setLoading(false));
   }, []);
 

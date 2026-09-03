@@ -5,18 +5,28 @@ import ListingDetailsPage from "./pages/ListingDetailsPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import HostDashboard from "./pages/HostDashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public routes — accessible by everyone */}
         <Route path="/" element={<Home />} />
         <Route path="/listings" element={<ListingsPage />} />
         <Route path="/listings/:id" element={<ListingDetailsPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/host/login" element={<LoginPage hostMode />} />
         <Route path="/signup" element={<SignupPage />} />
-        <Route path="/host" element={<HostDashboard />} />
+
+        {/* Host-only route — guests are redirected to / */}
+        <Route
+          path="/host"
+          element={
+            <ProtectedRoute allowedRoles={["host", "admin"]}>
+              <HostDashboard />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
