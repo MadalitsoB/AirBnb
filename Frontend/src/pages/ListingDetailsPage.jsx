@@ -66,7 +66,7 @@ function ListingDetailsPage() {
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(4);
   const [showAllAmenities, setShowAllAmenities] = useState(false);
-  const [reservationMessage, setReservationMessage] = useState("");
+  const [reservationMessage, setReservationMessage] = useState({ text: "", type: "" });
 
   // Only the listing's own host can edit photos
   const currentUser = JSON.parse(localStorage.getItem("airbnbUser") || "null");
@@ -150,17 +150,17 @@ function ListingDetailsPage() {
 
   const handleReserve = async () => {
     if (!localStorage.getItem("airbnbToken")) {
-      setReservationMessage("Log in or sign up before reserving this stay.");
+      setReservationMessage({ text: "Please login to make a reservation.", type: "error" });
       return;
     }
 
     if (!checkIn || !checkOut) {
-      setReservationMessage("Choose your check-in and checkout dates first.");
+      setReservationMessage({ text: "Please select your check-in and check-out dates.", type: "error" });
       return;
     }
 
     if (new Date(checkOut) <= new Date(checkIn)) {
-      setReservationMessage("Checkout must be after check-in.");
+      setReservationMessage({ text: "Check-out date must be after check-in.", type: "error" });
       return;
     }
 
@@ -184,11 +184,9 @@ function ListingDetailsPage() {
           },
         }),
       });
-      setReservationMessage(
-        `Your request for ${guests} guest${guests === 1 ? "" : "s"} is ready to confirm.`,
-      );
+      setReservationMessage({ text: "Reservation successful!", type: "success" });
     } catch (error) {
-      setReservationMessage(error.message || "Could not create reservation.");
+      setReservationMessage({ text: error.message || "Could not create reservation.", type: "error" });
     }
   };
 
@@ -584,10 +582,13 @@ function ListingDetailsPage() {
               >
                 Reserve
               </button>
-              {reservationMessage && (
-                <p className="booking-widget__message" role="status">
-                  {reservationMessage}
-                </p>
+              {reservationMessage.text && (
+                <div className={`reservation-alert reservation-alert--${reservationMessage.type}`} role="alert">
+                  <span className="reservation-alert__icon">
+                    {reservationMessage.type === "success" ? "✓" : "!"}
+                  </span>
+                  {reservationMessage.text}
+                </div>
               )}
               <p className="booking-widget__note">You won't be charged yet</p>
 

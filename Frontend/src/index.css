@@ -2889,3 +2889,499 @@ select {
   background: var(--border);
   margin: 0 16px;
 }
+
+/* ─── Host Dashboard — Tab layout ───────────────────────────── */
+.host-dashboard {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+.host-dashboard__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.host-dashboard__heading h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.host-dashboard__eyebrow {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--airbnb-red);
+  margin-bottom: 4px;
+}
+
+.host-dashboard__browse {
+  padding: 10px 20px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  transition: box-shadow 0.15s;
+}
+.host-dashboard__browse:hover { box-shadow: var(--shadow-sm); }
+
+/* ── Tab bar ── */
+.host-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+
+.host-tab {
+  position: relative;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  background: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: -1px;
+}
+.host-tab:hover { background: var(--bg-grey); color: var(--text); }
+
+.host-tab--active {
+  background: var(--text);
+  color: white;
+  border-color: var(--text);
+}
+.host-tab--active:hover { background: #333; }
+
+.host-tab__badge {
+  background: var(--airbnb-red);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 999px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* ── Toasts ── */
+.host-toast {
+  padding: 12px 18px;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+.host-toast--success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+.host-toast--error   { background: #fff0f2; color: #c0003c; border: 1px solid #ffb3c1; }
+
+/* ── Tab content wrapper ── */
+.host-tab-content { animation: fadeIn 0.18s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.host-tab-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 12px;
+}
+.host-tab-header h2 { font-size: 1.4rem; font-weight: 700; }
+.host-tab-header__sub { font-size: 0.875rem; color: var(--text-soft); margin-top: 4px; }
+.host-tab-header__action {
+  padding: 8px 18px;
+  background: var(--text);
+  color: white;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s;
+}
+.host-tab-header__action:hover { opacity: 0.85; }
+.host-tab-header__badge {
+  background: #fff0f2;
+  color: var(--airbnb-red);
+  border: 1px solid #ffb3c1;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 4px 12px;
+}
+
+/* ── Dashboard tab stats ── */
+.host-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.host-stat-card {
+  background: var(--bg-grey);
+  border-radius: 16px;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid var(--border);
+}
+.host-stat-card--alert { border-color: #ffb3c1; background: #fff0f2; }
+.host-stat-card strong { font-size: 2rem; font-weight: 800; color: var(--text); line-height: 1; }
+.host-stat-card span   { font-size: 0.85rem; color: var(--text-soft); }
+
+.host-quick-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.host-quick-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  background: var(--airbnb-red);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.host-quick-btn:hover { opacity: 0.88; }
+.host-quick-btn--secondary {
+  background: white;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.host-quick-btn--secondary:hover { background: var(--bg-grey); opacity: 1; }
+
+/* ── My Listings grid ── */
+.host-listings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.host-listing-card {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+.host-listing-card:hover { box-shadow: var(--shadow-md); }
+
+.host-listing-card__img-wrap { aspect-ratio: 4/3; overflow: hidden; }
+.host-listing-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+.host-listing-card:hover .host-listing-card__img { transform: scale(1.04); }
+
+.host-listing-card__body { padding: 16px 16px 8px; }
+.host-listing-card__type {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  margin-bottom: 4px;
+}
+.host-listing-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.host-listing-card__loc {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  margin-bottom: 4px;
+}
+.host-listing-card__meta {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  margin-bottom: 8px;
+}
+.host-listing-card__price {
+  font-size: 1rem;
+  font-weight: 700;
+}
+.host-listing-card__price span { font-weight: 400; color: var(--text-soft); font-size: 0.875rem; }
+
+.host-listing-card__actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.host-listing-card__preview {
+  flex: 1;
+  text-align: center;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  transition: background 0.15s;
+}
+.host-listing-card__preview:hover { background: var(--bg-grey); }
+
+.host-listing-card__delete {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ffb3c1;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #c0003c;
+  background: #fff0f2;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.host-listing-card__delete:hover { background: #ffe0e8; }
+
+/* ── Empty state ── */
+.host-empty {
+  text-align: center;
+  padding: 60px 20px;
+}
+.host-empty__icon  { font-size: 3rem; margin-bottom: 12px; }
+.host-empty__title { font-size: 1.2rem; font-weight: 700; margin-bottom: 6px; }
+.host-empty__sub   { color: var(--text-soft); margin-bottom: 20px; }
+.host-empty__btn {
+  padding: 12px 24px;
+  background: var(--airbnb-red);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.host-empty__btn:hover { opacity: 0.88; }
+
+/* ── Create Listing form ── */
+.host-form-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 720px;
+}
+
+.host-form-section { margin-bottom: 20px; }
+
+.host-form-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.host-form-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: white;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  font-family: inherit;
+}
+.host-form-input:focus {
+  border-color: var(--text);
+  box-shadow: 0 0 0 3px rgba(34,34,34,0.08);
+}
+
+.host-form-textarea { resize: vertical; min-height: 100px; }
+
+.host-form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.host-form-hint {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  margin-top: 5px;
+}
+
+.host-form-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+
+.host-form-cancel {
+  padding: 12px 24px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  background: white;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.host-form-cancel:hover { background: var(--bg-grey); }
+
+.host-form-submit {
+  padding: 12px 28px;
+  background: var(--airbnb-red);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.host-form-submit:hover { opacity: 0.88; }
+
+/* ── Reservations list ── */
+.host-reservations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.host-reservation-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: white;
+  transition: box-shadow 0.15s;
+}
+.host-reservation-card:hover { box-shadow: var(--shadow-sm); }
+
+.host-reservation-card__listing { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; }
+.host-reservation-card__dates,
+.host-reservation-card__guests  { font-size: 0.85rem; color: var(--text-soft); margin-bottom: 2px; }
+
+.host-reservation-card__right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; flex-shrink: 0; }
+
+.host-reservation-status {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+.host-reservation-status--pending   { background: #fff7e6; color: #b45309; border: 1px solid #fde68a; }
+.host-reservation-status--confirmed { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+.host-reservation-status--cancelled { background: #f9fafb; color: var(--text-soft); border: 1px solid var(--border); }
+
+.host-reservation-card__actions { display: flex; gap: 8px; }
+
+.host-res-btn {
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s;
+}
+.host-res-btn--approve { background: var(--text); color: white; }
+.host-res-btn--approve:hover { opacity: 0.85; }
+.host-res-btn--decline { background: #fff0f2; color: #c0003c; border: 1px solid #ffb3c1; }
+.host-res-btn--decline:hover { background: #ffe0e8; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .host-stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .host-tabs { gap: 4px; overflow-x: auto; padding-bottom: 4px; }
+  .host-tab  { padding: 8px 14px; font-size: 0.82rem; white-space: nowrap; }
+  .host-stats { grid-template-columns: 1fr 1fr; }
+  .host-form-card { padding: 20px; }
+  .host-reservation-card { flex-direction: column; align-items: flex-start; }
+  .host-reservation-card__right { align-items: flex-start; }
+}
+
+/* ─── Reservation alert ──────────────────────────────────────── */
+.reservation-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.reservation-alert--success {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.reservation-alert--error {
+  background: #fff0f2;
+  color: #c0003c;
+  border: 1px solid #ffb3c1;
+}
+
+.reservation-alert__icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.reservation-alert--success .reservation-alert__icon {
+  background: #166534;
+  color: white;
+}
+
+.reservation-alert--error .reservation-alert__icon {
+  background: #c0003c;
+  color: white;
+}
