@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { apiFetch } from "../services/api";
@@ -66,12 +66,24 @@ function ListingDetailsPage() {
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(4);
   const [showAllAmenities, setShowAllAmenities] = useState(false);
-  const [reservationMessage, setReservationMessage] = useState({ text: "", type: "" });
+  const [reservationMessage, setReservationMessage] = useState({
+    text: "",
+    type: "",
+  });
+  const dismissTimer = useRef(null);
+
+  const showAlert = (text, type) => {
+    clearTimeout(dismissTimer.current);
+    setReservationMessage({ text, type });
+    dismissTimer.current = setTimeout(
+      () => setReservationMessage({ text: "", type: "" }),
+      4000,
+    );
+  };
 
   // Only the listing's own host can edit photos
   const currentUser = JSON.parse(localStorage.getItem("airbnbUser") || "null");
-  const isOwner = currentUser &&
-    ["host", "admin"].includes(currentUser.role);
+  const isOwner = currentUser && ["host", "admin"].includes(currentUser.role);
 
   useEffect(() => {
     apiFetch(`/accommodations/${id}`)
@@ -135,9 +147,13 @@ function ListingDetailsPage() {
       : 5;
 
   const subtotal = (item.price || 2500) * nights;
-  const cleaningFee = 500;
-  const serviceFee = 1050;
-  const total = subtotal + cleaningFee + serviceFee;
+  const weeklyDiscount =
+    nights >= 7 ? (subtotal * Number(item.weeklyDiscount || 0)) / 100 : 0;
+  const cleaningFee = Number(item.cleaningFee || 0);
+  const serviceFee = Number(item.serviceFee || 0);
+  const occupancyTaxes = Number(item.occupancyTaxes || 0);
+  const total =
+    subtotal - weeklyDiscount + cleaningFee + serviceFee + occupancyTaxes;
 
   const jumpToReviews = (event) => {
     event.preventDefault();
@@ -150,17 +166,17 @@ function ListingDetailsPage() {
 
   const handleReserve = async () => {
     if (!localStorage.getItem("airbnbToken")) {
-      setReservationMessage({ text: "Please login to make a reservation.", type: "error" });
+      showAlert("Please login to make a reservation.", "error");
       return;
     }
 
     if (!checkIn || !checkOut) {
-      setReservationMessage({ text: "Please select your check-in and check-out dates.", type: "error" });
+      showAlert("Please select your check-in and check-out dates.", "error");
       return;
     }
 
     if (new Date(checkOut) <= new Date(checkIn)) {
-      setReservationMessage({ text: "Check-out date must be after check-in.", type: "error" });
+      showAlert("Check-out date must be after check-in.", "error");
       return;
     }
 
@@ -184,15 +200,36 @@ function ListingDetailsPage() {
           },
         }),
       });
-      setReservationMessage({ text: "Reservation successful!", type: "success" });
+      showAlert("Reservation successful!", "success");
     } catch (error) {
-      setReservationMessage({ text: error.message || "Could not create reservation.", type: "error" });
+      showAlert(error.message || "Could not create reservation.", "error");
     }
   };
 
   return (
     <div className="detail-page">
       <Navbar />
+
+      {/* ── Top-of-page alert toast ── */}
+      {reservationMessage.text && (
+        <div
+          className={`page-toast page-toast--${reservationMessage.type}`}
+          role="alert"
+        >
+          <span className="page-toast__icon">
+            {reservationMessage.type === "success" ? "✓" : "!"}
+          </span>
+          <span className="page-toast__text">{reservationMessage.text}</span>
+          <button
+            type="button"
+            className="page-toast__close"
+            onClick={() => setReservationMessage({ text: "", type: "" })}
+            aria-label="Dismiss"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       <div className="detail-wrap">
         {/* Title */}
@@ -436,6 +473,25 @@ function ListingDetailsPage() {
 
             <hr className="detail-divider" />
 
+            {/* Sleeping arrangements */}
+            <div className="detail-static-section">
+              <h3 className="detail-section-title">Where you&apos;ll sleep</h3>
+              <div className="sleeping-grid">
+                <div className="sleeping-card">
+                  <span className="sleeping-card__icon">🛏️</span>
+                  <strong>{item.bedrooms || 4} bedrooms</strong>
+                  <span>Comfortable beds for a restful stay</span>
+                </div>
+                <div className="sleeping-card">
+                  <span className="sleeping-card__icon">🛋️</span>
+                  <strong>Shared living space</strong>
+                  <span>Relax together after a day exploring</span>
+                </div>
+              </div>
+            </div>
+
+            <hr className="detail-divider" />
+
             {/* Amenities */}
             <div className="detail-amenities">
               <h3 className="detail-section-title">What this place offers</h3>
@@ -454,6 +510,30 @@ function ListingDetailsPage() {
               >
                 Show all 20 amenities
               </button>
+            </div>
+
+            <hr className="detail-divider" />
+
+            {/* Policies and practical information */}
+            <div className="detail-policies">
+              <h3 className="detail-section-title">Things to know</h3>
+              <div className="detail-policies__grid">
+                <div>
+                  <h4>House rules</h4>
+                  <p>Check-in after 15:00 · Checkout before 10:00</p>
+                  <p>No smoking · No parties or events</p>
+                </div>
+                <div>
+                  <h4>Health and safety</h4>
+                  <p>Smoke alarm and carbon monoxide alarm installed</p>
+                  <p>Enhanced cleaning between stays</p>
+                </div>
+                <div>
+                  <h4>Cancellation policy</h4>
+                  <p>Free cancellation for 48 hours after booking.</p>
+                  <p>Review the full policy before reserving.</p>
+                </div>
+              </div>
             </div>
 
             <hr className="detail-divider" />
@@ -582,14 +662,6 @@ function ListingDetailsPage() {
               >
                 Reserve
               </button>
-              {reservationMessage.text && (
-                <div className={`reservation-alert reservation-alert--${reservationMessage.type}`} role="alert">
-                  <span className="reservation-alert__icon">
-                    {reservationMessage.type === "success" ? "✓" : "!"}
-                  </span>
-                  {reservationMessage.text}
-                </div>
-              )}
               <p className="booking-widget__note">You won't be charged yet</p>
 
               <div className="booking-widget__breakdown">
@@ -599,6 +671,12 @@ function ListingDetailsPage() {
                   </span>
                   <span>R{subtotal.toLocaleString()}</span>
                 </div>
+                {weeklyDiscount > 0 && (
+                  <div className="booking-breakdown-row booking-breakdown-row--discount">
+                    <span>Weekly discount</span>
+                    <span>-R{weeklyDiscount.toLocaleString()}</span>
+                  </div>
+                )}
                 <div className="booking-breakdown-row">
                   <span>Cleaning fee</span>
                   <span>R{cleaningFee.toLocaleString()}</span>
@@ -606,6 +684,10 @@ function ListingDetailsPage() {
                 <div className="booking-breakdown-row">
                   <span>Airbnb service fee</span>
                   <span>R{serviceFee.toLocaleString()}</span>
+                </div>
+                <div className="booking-breakdown-row">
+                  <span>Occupancy taxes</span>
+                  <span>R{occupancyTaxes.toLocaleString()}</span>
                 </div>
               </div>
 

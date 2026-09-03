@@ -1,18 +1,14 @@
 const Reservation = require("../models/reservation");
 const Accommodation = require("../models/accommodation");
+const mongoose = require("mongoose");
 
 // @desc    Create reservation
 // @route   POST /api/reservations
 // @access  Private (guests only)
 exports.createReservation = async (req, res) => {
   try {
-    const {
-      accommodation,
-      checkInDate,
-      checkOutDate,
-      numberOfGuests,
-      priceBreakdown,
-    } = req.body;
+    const { accommodation, checkInDate, checkOutDate, numberOfGuests } =
+      req.body;
 
     // Validate input
     if (!accommodation || !checkInDate || !checkOutDate || !numberOfGuests) {
@@ -20,6 +16,21 @@ exports.createReservation = async (req, res) => {
         success: false,
         message:
           "Please provide accommodation, checkInDate, checkOutDate, and numberOfGuests",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(accommodation)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid accommodation ID",
+      });
+    }
+
+    const parsedGuests = Number(numberOfGuests);
+    if (!Number.isInteger(parsedGuests) || parsedGuests < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "Number of guests must be a positive whole number",
       });
     }
 
@@ -34,6 +45,12 @@ exports.createReservation = async (req, res) => {
     // Calculate number of nights
     const checkIn = new Date(checkInDate);
     const checkOut = new Date(checkOutDate);
+    if (Number.isNaN(checkIn.getTime()) || Number.isNaN(checkOut.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide valid check-in and check-out dates",
+      });
+    }
     const numberOfNights = Math.ceil(
       (checkOut - checkIn) / (1000 * 60 * 60 * 24),
     );
@@ -46,24 +63,24 @@ exports.createReservation = async (req, res) => {
       });
     }
 
-    // Calculate total price if not provided
-    let totalPrice = priceBreakdown?.total;
-    if (!totalPrice) {
-      const subtotal = accommodationData.price * numberOfNights;
-
-      // Apply weekly discount if booking is 7+ nights
-      const weeklyDiscount =
-        numberOfNights >= 7
-          ? (subtotal * accommodationData.weeklyDiscount) / 100
-          : 0;
-
-      const cleaningFee = accommodationData.cleaningFee;
-      const serviceFee = accommodationData.serviceFee;
-      const occupancyTaxes = accommodationData.occupancyTaxes;
-
-      totalPrice =
-        subtotal - weeklyDiscount + cleaningFee + serviceFee + occupancyTaxes;
+    if (parsedGuests > accommodationData.guests) {
+      return res.status(400).json({
+        success: false,
+        message: `This accommodation allows a maximum of ${accommodationData.guests} guests`,
+      });
     }
+
+    // Always calculate prices from trusted listing data, never from the client.
+    const subtotal = accommodationData.price * numberOfNights;
+    const weeklyDiscount =
+      numberOfNights >= 7
+        ? (subtotal * accommodationData.weeklyDiscount) / 100
+        : 0;
+    const cleaningFee = accommodationData.cleaningFee;
+    const serviceFee = accommodationData.serviceFee;
+    const occupancyTaxes = accommodationData.occupancyTaxes;
+    const totalPrice =
+      subtotal - weeklyDiscount + cleaningFee + serviceFee + occupancyTaxes;
 
     // Create reservation
     const reservation = await Reservation.create({
@@ -71,22 +88,16 @@ exports.createReservation = async (req, res) => {
       guest: req.user.id, // Current logged-in user is the guest
       checkInDate,
       checkOutDate,
-      numberOfGuests,
+      numberOfGuests: parsedGuests,
       totalPrice,
-      priceBreakdown: priceBreakdown || {
+      priceBreakdown: {
         nightlyRate: accommodationData.price,
         numberOfNights,
-        subtotal: accommodationData.price * numberOfNights,
-        weeklyDiscount:
-          numberOfNights >= 7
-            ? (accommodationData.price *
-                numberOfNights *
-                accommodationData.weeklyDiscount) /
-              100
-            : 0,
-        cleaningFee: accommodationData.cleaningFee,
-        serviceFee: accommodationData.serviceFee,
-        occupancyTaxes: accommodationData.occupancyTaxes,
+        subtotal,
+        weeklyDiscount,
+        cleaningFee,
+        serviceFee,
+        occupancyTaxes,
         total: totalPrice,
       },
     });
@@ -155,7 +166,9 @@ exports.getHostReservations = async (req, res) => {
     }
 
     // Find all accommodations owned by this host
-    const accommodations = await Accommodation.find({ host: req.user.id });
+    const accommodations = await Accommodation.find(
+      req.user.role === "admin" ? {} : { host: req.user.id },
+    );
     const accommodationIds = accommodations.map((acc) => acc._id);
 
     // Find all reservations for these accommodations
@@ -183,6 +196,11 @@ exports.getHostReservations = async (req, res) => {
 // @access  Private
 exports.getReservation = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid reservation ID" });
+    }
     const reservation = await Reservation.findById(req.params.id)
       .populate("accommodation")
       .populate("guest", "username email");
@@ -191,6 +209,15 @@ exports.getReservation = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Reservation not found",
+      });
+    }
+
+    const isGuest = reservation.guest._id.toString() === req.user.id;
+    const isHost = reservation.accommodation.host.toString() === req.user.id;
+    if (!isGuest && !isHost && req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to view this reservation",
       });
     }
 
@@ -208,6 +235,11 @@ exports.getReservation = async (req, res) => {
 
 exports.updateReservationStatus = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid reservation ID" });
+    }
     const { status } = req.body;
     if (!["pending", "confirmed", "cancelled", "completed"].includes(status)) {
       return res
@@ -224,7 +256,7 @@ exports.updateReservationStatus = async (req, res) => {
         typeof accommodation?.host === "object"
           ? accommodation.host?._id
           : accommodation?.host;
-      if (ownerId !== req.user.id) {
+      if (req.user.role !== "admin" && ownerId !== req.user.id) {
         return res.status(403).json({
           success: false,
           message: "Not authorized to update this reservation",
@@ -241,7 +273,10 @@ exports.updateReservationStatus = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Reservation not found" });
-    if (reservation.accommodation.host.toString() !== req.user.id) {
+    if (
+      req.user.role !== "admin" &&
+      reservation.accommodation.host.toString() !== req.user.id
+    ) {
       return res.status(403).json({
         success: false,
         message: "Not authorized to update this reservation",
@@ -260,6 +295,11 @@ exports.updateReservationStatus = async (req, res) => {
 // @access  Private (guest or host can cancel)
 exports.deleteReservation = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid reservation ID" });
+    }
     const reservation = await Reservation.findById(req.params.id);
 
     if (!reservation) {
@@ -275,9 +315,10 @@ exports.deleteReservation = async (req, res) => {
     );
 
     const isGuest = reservation.guest.toString() === req.user.id;
-    const isHost = accommodation.host.toString() === req.user.id;
+    const isHost =
+      accommodation && accommodation.host.toString() === req.user.id;
 
-    if (!isGuest && !isHost) {
+    if (!isGuest && !isHost && req.user.role !== "admin") {
       return res.status(403).json({
         success: false,
         message: "Not authorized to delete this reservation",

@@ -1,5 +1,12 @@
 const jwt = require("jsonwebtoken");
 
+const getJwtSecret = () => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is required");
+  }
+  return process.env.JWT_SECRET;
+};
+
 const protect = (req, res, next) => {
   let token;
 
@@ -18,7 +25,7 @@ const protect = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "secretkey");
+    const decoded = jwt.verify(token, getJwtSecret());
     if (!decoded.role && global.demoUsers) {
       const demoUser = global.demoUsers.find((user) => user._id === decoded.id);
       if (demoUser) decoded.role = demoUser.role;
@@ -34,7 +41,7 @@ const protect = (req, res, next) => {
 };
 
 const generateToken = (id, role = "user") => {
-  return jwt.sign({ id, role }, process.env.JWT_SECRET || "secretkey", {
+  return jwt.sign({ id, role }, getJwtSecret(), {
     expiresIn: process.env.JWT_EXPIRE || "7d",
   });
 };

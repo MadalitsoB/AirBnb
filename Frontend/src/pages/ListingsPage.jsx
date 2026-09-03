@@ -141,6 +141,12 @@ function ListingsPage() {
   const [activeCategory, setActiveCategory] = useState(0);
   const [showTotal, setShowTotal] = useState(false);
   const [showMap, setShowMap] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    type: "",
+    maxPrice: "",
+    minGuests: "",
+  });
 
   useEffect(() => {
     apiFetch("/accommodations")
@@ -149,8 +155,8 @@ function ListingsPage() {
         const items = Array.isArray(data?.data)
           ? data.data
           : Array.isArray(data)
-          ? data
-          : [];
+            ? data
+            : [];
         // Always prefer real API data; only fall back if API returned nothing
         setListings(items.length > 0 ? items : FALLBACK);
       })
@@ -186,12 +192,19 @@ function ListingsPage() {
       }
     }
 
+    if (filters.type && item.type !== filters.type) return false;
+    if (filters.maxPrice && Number(item.price || 0) > Number(filters.maxPrice))
+      return false;
+    if (
+      filters.minGuests &&
+      Number(item.guests || 0) < Number(filters.minGuests)
+    )
+      return false;
+
     return true;
   });
 
-  const displayedListings = filteredListings.length
-    ? filteredListings
-    : categoryFiltered;
+  const displayedListings = filteredListings;
   const mapMarkers = buildMapMarkers(
     displayedListings.length ? displayedListings : FALLBACK,
   );
@@ -219,7 +232,10 @@ function ListingsPage() {
           ))}
         </div>
         <div className="category-bar__filters">
-          <button className="filter-btn">
+          <button
+            className={`filter-btn ${showFilters ? "filter-btn--active" : ""}`}
+            onClick={() => setShowFilters((value) => !value)}
+          >
             <svg
               viewBox="0 0 16 16"
               width="16"
@@ -240,6 +256,59 @@ function ListingsPage() {
           </button>
         </div>
       </div>
+
+      {showFilters && (
+        <div className="listing-filters-panel" aria-label="Listing filters">
+          <label>
+            Property type
+            <select
+              value={filters.type}
+              onChange={(event) =>
+                setFilters({ ...filters, type: event.target.value })
+              }
+            >
+              <option value="">Any type</option>
+              <option>Entire apartment</option>
+              <option>Private room</option>
+              <option>Shared room</option>
+              <option>Hotel room</option>
+            </select>
+          </label>
+          <label>
+            Maximum price per night
+            <input
+              type="number"
+              min="0"
+              placeholder="Any price"
+              value={filters.maxPrice}
+              onChange={(event) =>
+                setFilters({ ...filters, maxPrice: event.target.value })
+              }
+            />
+          </label>
+          <label>
+            Minimum guests
+            <input
+              type="number"
+              min="1"
+              placeholder="Any capacity"
+              value={filters.minGuests}
+              onChange={(event) =>
+                setFilters({ ...filters, minGuests: event.target.value })
+              }
+            />
+          </label>
+          <button
+            type="button"
+            className="listing-filters-panel__clear"
+            onClick={() =>
+              setFilters({ type: "", maxPrice: "", minGuests: "" })
+            }
+          >
+            Clear filters
+          </button>
+        </div>
+      )}
 
       {/* Grid */}
       <main className="listings-grid-wrap">

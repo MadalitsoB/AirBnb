@@ -1,5 +1,5 @@
 const Accommodation = require("../models/accommodation");
-const User = require("../models/user");
+const mongoose = require("mongoose");
 
 // @desc    Create accommodation listing
 // @route   POST /api/accommodations
@@ -41,9 +41,29 @@ exports.createAccommodation = async (req, res) => {
       });
     }
 
-    // Auto-promote user to host if they aren't already
-    if (req.user.role !== "host" && req.user.role !== "admin") {
-      await User.findByIdAndUpdate(req.user.id, { role: "host" });
+    const numericFields = [
+      ["price", price, 1],
+      ["bedrooms", bedrooms, 0],
+      ["bathrooms", bathrooms, 0],
+      ["guests", guests, 1],
+      ["weeklyDiscount", weeklyDiscount, 0, 100],
+      ["cleaningFee", cleaningFee, 0],
+      ["serviceFee", serviceFee, 0],
+      ["occupancyTaxes", occupancyTaxes, 0],
+    ];
+    const invalidField = numericFields.find(([, value, minimum, maximum]) => {
+      const numericValue = Number(value ?? 0);
+      return (
+        !Number.isFinite(numericValue) ||
+        numericValue < minimum ||
+        (maximum !== undefined && numericValue > maximum)
+      );
+    });
+    if (invalidField) {
+      return res.status(400).json({
+        success: false,
+        message: `${invalidField[0]} has an invalid value`,
+      });
     }
 
     // Create accommodation with host ID from authenticated user
@@ -114,6 +134,11 @@ exports.getAccommodations = async (req, res) => {
 // @access  Public
 exports.getAccommodation = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid accommodation ID" });
+    }
     const accommodation = await Accommodation.findById(req.params.id).populate(
       "host",
       "username email",
@@ -148,7 +173,7 @@ exports.updateAccommodation = async (req, res) => {
     );
     if (demoIndex !== -1) {
       const demoListing = global.demoListings[demoIndex];
-      if (demoListing.host !== req.user.id) {
+      if (req.user.role !== "admin" && demoListing.host !== req.user.id) {
         return res.status(403).json({
           success: false,
           message: "Not authorized to update this accommodation",
@@ -165,6 +190,12 @@ exports.updateAccommodation = async (req, res) => {
         .json({ success: true, data: global.demoListings[demoIndex] });
     }
 
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid accommodation ID" });
+    }
+
     let accommodation = await Accommodation.findById(req.params.id);
 
     if (!accommodation) {
@@ -175,7 +206,10 @@ exports.updateAccommodation = async (req, res) => {
     }
 
     // Check if current user is the host
-    if (accommodation.host.toString() !== req.user.id) {
+    if (
+      req.user.role !== "admin" &&
+      accommodation.host.toString() !== req.user.id
+    ) {
       return res.status(403).json({
         success: false,
         message: "Not authorized to update this accommodation",
@@ -214,7 +248,7 @@ exports.deleteAccommodation = async (req, res) => {
     );
     if (demoIndex !== -1) {
       const demoListing = global.demoListings[demoIndex];
-      if (demoListing.host !== req.user.id) {
+      if (req.user.role !== "admin" && demoListing.host !== req.user.id) {
         return res.status(403).json({
           success: false,
           message: "Not authorized to delete this accommodation",
@@ -224,6 +258,12 @@ exports.deleteAccommodation = async (req, res) => {
       return res
         .status(200)
         .json({ success: true, message: "Accommodation deleted successfully" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid accommodation ID" });
     }
 
     const accommodation = await Accommodation.findById(req.params.id);
@@ -236,7 +276,10 @@ exports.deleteAccommodation = async (req, res) => {
     }
 
     // Check if current user is the host
-    if (accommodation.host.toString() !== req.user.id) {
+    if (
+      req.user.role !== "admin" &&
+      accommodation.host.toString() !== req.user.id
+    ) {
       return res.status(403).json({
         success: false,
         message: "Not authorized to delete this accommodation",

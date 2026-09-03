@@ -36,6 +36,7 @@ const hostArticles = [
     to: "/signup",
     img: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=600&q=80",
     dark: true,
+    section: "trip",
   },
   {
     title: "AirCover for Hosts",
@@ -43,8 +44,27 @@ const hostArticles = [
     to: "/listings?location=Johannesburg",
     img: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
     dark: false,
+    section: "home",
   },
 ];
+
+const futureGetaways = {
+  Popular: [
+    ["Cape Town", "Ocean-view stays", "Cape Town"],
+    ["Durban", "Beach homes", "Durban"],
+    ["Johannesburg", "City escapes", "Johannesburg"],
+  ],
+  Coastal: [
+    ["Knysna", "Lakefront retreats", "Knysna"],
+    ["Hermanus", "Clifftop homes", "Hermanus"],
+    ["Stellenbosch", "Vineyard stays", "Stellenbosch"],
+  ],
+  Countryside: [
+    ["Franschhoek", "Farm stays", "Franschhoek"],
+    ["Drakensberg", "Mountain cabins", "Drakensberg"],
+    ["Tsitsikamma", "Forest getaways", "Tsitsikamma"],
+  ],
+};
 
 const footerLinks = {
   Support: [
@@ -71,6 +91,14 @@ const footerLinks = {
     "Investors",
     "Gift cards",
   ],
+  Discover: [
+    "Gift cards",
+    "Airbnb Luxe",
+    "Work stays",
+    "South Africa stays",
+    "Popular destinations",
+    "All stays",
+  ],
 };
 
 function Home() {
@@ -78,6 +106,9 @@ function Home() {
   const [giftAmount, setGiftAmount] = useState(1000);
   const [giftEmail, setGiftEmail] = useState("");
   const [giftMessage, setGiftMessage] = useState("");
+  const [futureTab, setFutureTab] = useState("Popular");
+  const [language, setLanguage] = useState("English (ZA)");
+  const [currency, setCurrency] = useState("R ZAR");
 
   const handleGiftCardPurchase = (event) => {
     event.preventDefault();
@@ -137,24 +168,39 @@ function Home() {
           </div>
         </section>
 
-        {/* Host articles */}
-        <section className="home__section">
-          <h2 className="home__section-title">Explore things to do near you</h2>
-          <div className="host-articles">
-            {hostArticles.map((a) => (
-              <div
-                key={a.title}
-                className={`host-article ${a.dark ? "host-article--dark" : ""}`}
-              >
-                <img src={a.img} alt={a.title} className="host-article__img" />
-                <div className="host-article__body">
-                  <p className="host-article__title">{a.title}</p>
-                  <Link to={a.to} className="host-article__btn">
-                    {a.subtitle}
-                  </Link>
-                </div>
+        {/* Discover experiences */}
+        <section className="home__section experiences-section">
+          <div className="experience-panel">
+            <h2 className="home__section-title">Discover Airbnb Experiences</h2>
+            <div className="host-article">
+              <img
+                src={hostArticles[0].img}
+                alt="Discover Airbnb Experiences"
+                className="host-article__img"
+              />
+              <div className="host-article__body">
+                <p className="host-article__title">{hostArticles[0].title}</p>
+                <button type="button" className="host-article__btn">
+                  {hostArticles[0].subtitle}
+                </button>
               </div>
-            ))}
+            </div>
+          </div>
+          <div className="experience-panel">
+            <h2 className="home__section-title">Things to do at home</h2>
+            <div className="host-article">
+              <img
+                src={hostArticles[1].img}
+                alt="Things to do at home"
+                className="host-article__img"
+              />
+              <div className="host-article__body">
+                <p className="host-article__title">{hostArticles[1].title}</p>
+                <button type="button" className="host-article__btn">
+                  {hostArticles[1].subtitle}
+                </button>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -260,6 +306,43 @@ function Home() {
           </div>
         )}
 
+        {/* Future getaways */}
+        <section className="home__section future-getaways">
+          <h2 className="home__section-title">
+            Inspiration for future getaways
+          </h2>
+          <div
+            className="future-getaways__tabs"
+            role="tablist"
+            aria-label="Future getaway categories"
+          >
+            {Object.keys(futureGetaways).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                role="tab"
+                aria-selected={futureTab === tab}
+                className={`future-getaways__tab ${futureTab === tab ? "future-getaways__tab--active" : ""}`}
+                onClick={() => setFutureTab(tab)}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+          <div className="future-getaways__grid">
+            {futureGetaways[futureTab].map(([city, description, location]) => (
+              <Link
+                key={city}
+                to={`/listings?location=${encodeURIComponent(location)}`}
+                className="future-getaway"
+              >
+                <strong>{city}</strong>
+                <span>{description}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+
         {/* Questions about hosting */}
         <section className="home__section">
           <div className="hosting-banner">
@@ -315,6 +398,38 @@ function Home() {
               <a href="#">Terms</a>
               <a href="#">Sitemap</a>
               <a href="#">Company details</a>
+            </div>
+            <div className="footer__controls">
+              <label className="footer-select">
+                <span className="sr-only">Language</span>
+                <select
+                  value={language}
+                  onChange={(event) => setLanguage(event.target.value)}
+                >
+                  <option>English (ZA)</option>
+                  <option>English (US)</option>
+                  <option>isiZulu</option>
+                  <option>Français</option>
+                </select>
+              </label>
+              <label className="footer-select">
+                <span className="sr-only">Currency</span>
+                <select
+                  value={currency}
+                  onChange={(event) => setCurrency(event.target.value)}
+                >
+                  <option>R ZAR</option>
+                  <option>$ USD</option>
+                  <option>€ EUR</option>
+                  <option>£ GBP</option>
+                </select>
+              </label>
+              <a href="#" aria-label="Instagram">
+                Instagram
+              </a>
+              <a href="#" aria-label="Facebook">
+                Facebook
+              </a>
             </div>
           </div>
         </footer>

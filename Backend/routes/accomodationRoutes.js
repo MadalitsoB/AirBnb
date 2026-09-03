@@ -26,8 +26,8 @@ router.get("/:id", (req, res) => {
   return getAccommodation(req, res);
 });
 
-router.post("/", protect, createAccommodation);
-router.put("/:id", protect, updateAccommodation);
-router.delete("/:id", protect, deleteAccommodation);
+router.post("/", protect, hostOnly, createAccommodation);
+router.put("/:id", protect, hostOnly, updateAccommodation);
+router.delete("/:id", protect, hostOnly, deleteAccommodation);
 
 module.exports = router;
