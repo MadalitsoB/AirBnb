@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { apiFetch } from "../services/api";
 
@@ -58,30 +58,26 @@ const REVIEWS = [
 
 function ListingDetailsPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showAllPhotos, setShowAllPhotos] = useState(false);
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(4);
-  const [showPhotoEditor, setShowPhotoEditor] = useState(false);
-  const [customImages, setCustomImages] = useState([]);
-  const [photoDraft, setPhotoDraft] = useState("");
-  const [photoError, setPhotoError] = useState("");
   const [showAllAmenities, setShowAllAmenities] = useState(false);
   const [reservationMessage, setReservationMessage] = useState("");
+
+  // Only the listing's own host can edit photos
+  const currentUser = JSON.parse(localStorage.getItem("airbnbUser") || "null");
+  const isOwner = currentUser &&
+    ["host", "admin"].includes(currentUser.role);
 
   useEffect(() => {
     apiFetch(`/accommodations/${id}`)
       .then((data) => {
         if (data?.success) {
           setListing(data.data);
-          const savedImages = localStorage.getItem(`listing-images-${id}`);
-          const parsedImages = savedImages ? JSON.parse(savedImages) : [];
-          if (Array.isArray(parsedImages)) {
-            setCustomImages(parsedImages);
-            setPhotoDraft(parsedImages.join("\n"));
-          }
         }
       })
       .catch(() => {})
@@ -126,46 +122,7 @@ function ListingDetailsPage() {
         "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
       ];
 
-  const displayedImages = customImages.length ? customImages : images;
-
-  const saveCustomImages = () => {
-    const nextImages = photoDraft
-      .split(/\r?\n|,/)
-      .map((url) => url.trim())
-      .filter(Boolean);
-
-    if (nextImages.length < 1) {
-      setPhotoError(
-        "Add at least one image URL, or reset to the curated gallery.",
-      );
-      return;
-    }
-
-    const invalidUrl = nextImages.find((url) => {
-      try {
-        return !["http:", "https:"].includes(new URL(url).protocol);
-      } catch {
-        return true;
-      }
-    });
-
-    if (invalidUrl) {
-      setPhotoError("Each image must be a valid http or https URL.");
-      return;
-    }
-
-    localStorage.setItem(`listing-images-${id}`, JSON.stringify(nextImages));
-    setCustomImages(nextImages);
-    setPhotoError("");
-    setShowPhotoEditor(false);
-  };
-
-  const resetCustomImages = () => {
-    localStorage.removeItem(`listing-images-${id}`);
-    setCustomImages([]);
-    setPhotoDraft(images.join("\n"));
-    setPhotoError("");
-  };
+  const displayedImages = images;
 
   const maxGuests = Math.max(10, Number(item.guests) || 10);
 
@@ -266,17 +223,15 @@ function ListingDetailsPage() {
               <span className="detail-header__loc">{item.location}</span>
             </div>
             <div className="detail-header__actions">
-              <button
-                type="button"
-                className="detail-action-btn"
-                onClick={() => {
-                  setPhotoDraft(displayedImages.join("\n"));
-                  setPhotoError("");
-                  setShowPhotoEditor(true);
-                }}
-              >
-                Edit photos
-              </button>
+              {isOwner && (
+                <button
+                  type="button"
+                  className="detail-action-btn"
+                  onClick={() => navigate(`/host`)}
+                >
+                  Edit listing
+                </button>
+              )}
               <button className="detail-action-btn">
                 <svg
                   viewBox="0 0 16 16"
@@ -352,55 +307,6 @@ function ListingDetailsPage() {
             Show all photos
           </button>
         </div>
-
-        {showPhotoEditor && (
-          <div
-            className="photo-editor"
-            role="dialog"
-            aria-labelledby="photo-editor-title"
-          >
-            <div className="photo-editor__header">
-              <div>
-                <h2 id="photo-editor-title">Customize this gallery</h2>
-                <p>
-                  Paste one image URL per line. Changes are saved on this
-                  device.
-                </p>
-              </div>
-              <button
-                type="button"
-                className="photo-editor__close"
-                aria-label="Close photo editor"
-                onClick={() => setShowPhotoEditor(false)}
-              >
-                ×
-              </button>
-            </div>
-            <textarea
-              value={photoDraft}
-              onChange={(event) => setPhotoDraft(event.target.value)}
-              placeholder="https://example.com/sandton-apartment.jpg"
-              rows={5}
-            />
-            {photoError && <p className="photo-editor__error">{photoError}</p>}
-            <div className="photo-editor__actions">
-              <button
-                type="button"
-                className="photo-editor__reset"
-                onClick={resetCustomImages}
-              >
-                Reset curated photos
-              </button>
-              <button
-                type="button"
-                className="photo-editor__save"
-                onClick={saveCustomImages}
-              >
-                Save gallery
-              </button>
-            </div>
-          </div>
-        )}
 
         {showAllPhotos && (
           <div
