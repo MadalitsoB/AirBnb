@@ -5,6 +5,7 @@ import ListingDetailsPage from "./pages/ListingDetailsPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import HostDashboard from "./pages/HostDashboard";
+import MyReservationsPage from "./pages/MyReservationsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -24,6 +25,16 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["host", "admin"]}>
               <HostDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Guest-only route — must be logged in */}
+        <Route
+          path="/my-reservations"
+          element={
+            <ProtectedRoute allowedRoles={[]}>
+              <MyReservationsPage />
             </ProtectedRoute>
           }
         />

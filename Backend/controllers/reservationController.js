@@ -108,22 +108,10 @@ exports.createReservation = async (req, res) => {
 // @access  Private
 exports.getUserReservations = async (req, res) => {
   try {
-    const demoReservations = (global.demoReservations || []).filter(
-      (reservation) =>
-        reservation.guest?._id === req.user.id ||
-        reservation.guest === req.user.id,
-    );
-    if (demoReservations.length || global.demoReservations) {
-      return res.status(200).json({
-        success: true,
-        count: demoReservations.length,
-        data: demoReservations,
-      });
-    }
-
     const reservations = await Reservation.find({ guest: req.user.id })
       .populate("accommodation")
-      .populate("guest", "username email");
+      .populate("guest", "username email")
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,

@@ -409,6 +409,7 @@ function Navbar() {
                     <hr className="navbar__dropdown-hr" />
                     {isHost && <Link to="/host" className="navbar__dropdown-item" onClick={() => setMenuOpen(false)}>Host dashboard</Link>}
                     {!isHost && <Link to="/listings" className="navbar__dropdown-item" onClick={() => setMenuOpen(false)}>Browse stays</Link>}
+                    {!isHost && <Link to="/my-reservations" className="navbar__dropdown-item" onClick={() => setMenuOpen(false)}>My reservations</Link>}
                     <button className="navbar__dropdown-item navbar__dropdown-item--logout" onClick={handleLogout}>Log out</button>
                   </>
                 ) : (
