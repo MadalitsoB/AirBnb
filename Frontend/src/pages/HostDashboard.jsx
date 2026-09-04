@@ -46,7 +46,7 @@ function HostDashboard() {
       }
       setUser(me.data);
       const [listingRes, reservationRes] = await Promise.all([
-        apiFetch("/accommodations"),
+        apiFetch("/api/accommodations"),
         apiFetch("/reservations/host"),
       ]);
       const owned =
@@ -148,8 +148,8 @@ function HostDashboard() {
     try {
       await apiFetch(
         editingListingId
-          ? `/accommodations/${editingListingId}`
-          : "/accommodations",
+          ? `/api/accommodations/${editingListingId}`
+          : "/api/accommodations",
         {
           method: editingListingId ? "PUT" : "POST",
           body: JSON.stringify({
@@ -213,7 +213,7 @@ function HostDashboard() {
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this listing? This cannot be undone.")) return;
     try {
-      await apiFetch(`/accommodations/${id}`, { method: "DELETE" });
+      await apiFetch(`/api/accommodations/${id}`, { method: "DELETE" });
       notify("Listing deleted.");
       loadDashboard();
     } catch (err) {

@@ -150,7 +150,7 @@ function ListingsPage() {
   });
 
   useEffect(() => {
-    apiFetch("/accommodations")
+    apiFetch("/api/accommodations")
       .then((data) => {
         // API response is { success: true, data: [...] }
         const items = Array.isArray(data?.data)

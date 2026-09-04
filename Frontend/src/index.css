@@ -1784,7 +1784,7 @@ select {
   left: auto;
   right: auto;
   top: auto;
-  width: min(100%, 760px);
+  width: min(100%, 520px);
   box-shadow: none;
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -2067,6 +2067,13 @@ select {
 
 .booking-widget {
   position: sticky;
+}
+
+.booking-widget .booking-calendar {
+  left: 50%;
+  right: auto;
+  width: min(420px, calc(100% - 32px));
+  transform: translateX(-50%);
 }
 
 .booking-calendar__header {

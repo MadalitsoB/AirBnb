@@ -6,7 +6,7 @@ function SignupPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState(
-    searchParams.get("role") === "host" ? "host" : "guest"
+    searchParams.get("role") === "host" ? "host" : "guest",
   );
   const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [message, setMessage] = useState("");
@@ -25,7 +25,7 @@ function SignupPage() {
     setLoading(true);
     setMessage("");
     try {
-      const data = await apiFetch("/users/register", {
+      const data = await apiFetch("/api/users/register", {
         method: "POST",
         body: JSON.stringify({
           ...form,
@@ -52,7 +52,14 @@ function SignupPage() {
       <div className="auth-modal">
         <div className="auth-modal__header">
           <button className="auth-modal__close" onClick={() => navigate("/")}>
-            <svg viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg
+              viewBox="0 0 32 32"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
               <path d="M6 6l20 20M26 6L6 26" strokeLinecap="round" />
             </svg>
           </button>
@@ -61,7 +68,6 @@ function SignupPage() {
         </div>
 
         <div className="auth-modal__body">
-
           {/* Guest / Host toggle */}
           <div className="auth-role-toggle">
             <button
@@ -71,7 +77,9 @@ function SignupPage() {
             >
               <span className="auth-role-btn__icon">🏠</span>
               <span className="auth-role-btn__label">Guest</span>
-              <span className="auth-role-btn__sub">I'm looking for a place</span>
+              <span className="auth-role-btn__sub">
+                I'm looking for a place
+              </span>
             </button>
             <button
               type="button"
@@ -80,21 +88,31 @@ function SignupPage() {
             >
               <span className="auth-role-btn__icon">🔑</span>
               <span className="auth-role-btn__label">Host</span>
-              <span className="auth-role-btn__sub">I want to list my place</span>
+              <span className="auth-role-btn__sub">
+                I want to list my place
+              </span>
             </button>
           </div>
 
           {/* Context banner */}
-          <div className={`auth-context-banner ${isHost ? "auth-context-banner--host" : "auth-context-banner--guest"}`}>
+          <div
+            className={`auth-context-banner ${isHost ? "auth-context-banner--host" : "auth-context-banner--guest"}`}
+          >
             {isHost ? (
               <>
                 <strong>Creating a Host account</strong>
-                <p>After signing up you'll go straight to your dashboard to create your first listing.</p>
+                <p>
+                  After signing up you'll go straight to your dashboard to
+                  create your first listing.
+                </p>
               </>
             ) : (
               <>
                 <strong>Creating a Guest account</strong>
-                <p>After signing up you'll go to the home page to start browsing stays.</p>
+                <p>
+                  After signing up you'll go to the home page to start browsing
+                  stays.
+                </p>
               </>
             )}
           </div>
@@ -131,10 +149,23 @@ function SignupPage() {
             </div>
 
             <p className="auth-terms">
-              By selecting <strong>{isHost ? "Create Host account" : "Create Guest account"}</strong>, I agree to Airbnb's{" "}
-              <a href="#" className="auth-link">Terms of Service</a>,{" "}
-              <a href="#" className="auth-link">Privacy Policy</a>, and{" "}
-              <a href="#" className="auth-link">Nondiscrimination Policy</a>.
+              By selecting{" "}
+              <strong>
+                {isHost ? "Create Host account" : "Create Guest account"}
+              </strong>
+              , I agree to Airbnb's{" "}
+              <a href="#" className="auth-link">
+                Terms of Service
+              </a>
+              ,{" "}
+              <a href="#" className="auth-link">
+                Privacy Policy
+              </a>
+              , and{" "}
+              <a href="#" className="auth-link">
+                Nondiscrimination Policy
+              </a>
+              .
             </p>
 
             {message && <p className="auth-error">{message}</p>}
@@ -147,14 +178,17 @@ function SignupPage() {
               {loading
                 ? "Creating account…"
                 : isHost
-                ? "Create Host account"
-                : "Create Guest account"}
+                  ? "Create Host account"
+                  : "Create Guest account"}
             </button>
           </form>
 
           <p className="auth-switch">
             Already have an account?{" "}
-            <Link to={isHost ? "/login?role=host" : "/login"} className="auth-link">
+            <Link
+              to={isHost ? "/login?role=host" : "/login"}
+              className="auth-link"
+            >
               Log in as {isHost ? "a host" : "a guest"}
             </Link>
           </p>

@@ -1,5 +1,6 @@
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:5000")
+  .replace(/\/+$/, "")
+  .replace(/\/api$/, "");
 
 export const apiFetch = async (endpoint, options = {}) => {
   const headers = { ...(options.headers || {}) };
@@ -13,9 +14,15 @@ export const apiFetch = async (endpoint, options = {}) => {
     headers.Authorization = `Bearer ${token}`;
   }
 
+  const normalizedEndpoint = endpoint.startsWith("/")
+    ? endpoint
+    : `/${endpoint}`;
+  const apiEndpoint = normalizedEndpoint.startsWith("/api/")
+    ? normalizedEndpoint
+    : `/api${normalizedEndpoint}`;
   const url = endpoint.startsWith("http")
     ? endpoint
-    : `${API_BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
+    : `${API_BASE_URL}${apiEndpoint}`;
 
   let response;
   try {

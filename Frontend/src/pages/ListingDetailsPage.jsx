@@ -264,7 +264,7 @@ function ListingDetailsPage() {
   };
 
   useEffect(() => {
-    apiFetch(`/accommodations/${id}`)
+    apiFetch(`/api/accommodations/${id}`)
       .then((data) => {
         if (data?.success) {
           setListing(data.data);

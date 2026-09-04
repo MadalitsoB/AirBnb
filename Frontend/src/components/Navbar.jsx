@@ -176,7 +176,7 @@ function Navbar() {
 
   /* fetch real locations */
   useEffect(() => {
-    apiFetch("/accommodations")
+    apiFetch("/api/accommodations")
       .then((data) => {
         const items = Array.isArray(data?.data) ? data.data : [];
         if (!items.length) return;

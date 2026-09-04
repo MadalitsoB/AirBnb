@@ -6,7 +6,7 @@ function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState(
-    searchParams.get("role") === "host" ? "host" : "guest"
+    searchParams.get("role") === "host" ? "host" : "guest",
   );
   const [form, setForm] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
@@ -25,7 +25,7 @@ function LoginPage() {
     setLoading(true);
     setMessage("");
     try {
-      const data = await apiFetch("/users/login", {
+      const data = await apiFetch("/api/users/login", {
         method: "POST",
         body: JSON.stringify(form),
       });
@@ -38,7 +38,7 @@ function LoginPage() {
       // Wrong tab — tell them clearly, don't proceed
       if (mode === "host" && !isHost) {
         setMessage(
-          "This is a guest account. Please use the Guest tab to log in, or sign up as a host."
+          "This is a guest account. Please use the Guest tab to log in, or sign up as a host.",
         );
         localStorage.removeItem("airbnbToken");
         localStorage.removeItem("airbnbUser");
@@ -47,7 +47,7 @@ function LoginPage() {
 
       if (mode === "guest" && isHost) {
         setMessage(
-          "This is a host account. Please use the Host tab to log in."
+          "This is a host account. Please use the Host tab to log in.",
         );
         localStorage.removeItem("airbnbToken");
         localStorage.removeItem("airbnbUser");
@@ -57,7 +57,9 @@ function LoginPage() {
       // Correct tab — redirect to the right place
       navigate(isHost ? "/host" : "/");
     } catch (error) {
-      setMessage(error.message || "Login failed. Check your email and password.");
+      setMessage(
+        error.message || "Login failed. Check your email and password.",
+      );
     } finally {
       setLoading(false);
     }
@@ -70,7 +72,14 @@ function LoginPage() {
       <div className="auth-modal">
         <div className="auth-modal__header">
           <button className="auth-modal__close" onClick={() => navigate("/")}>
-            <svg viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg
+              viewBox="0 0 32 32"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
               <path d="M6 6l20 20M26 6L6 26" strokeLinecap="round" />
             </svg>
           </button>
@@ -79,7 +88,6 @@ function LoginPage() {
         </div>
 
         <div className="auth-modal__body">
-
           {/* Guest / Host toggle */}
           <div className="auth-role-toggle">
             <button
@@ -89,7 +97,9 @@ function LoginPage() {
             >
               <span className="auth-role-btn__icon">🏠</span>
               <span className="auth-role-btn__label">Guest</span>
-              <span className="auth-role-btn__sub">I'm looking for a place</span>
+              <span className="auth-role-btn__sub">
+                I'm looking for a place
+              </span>
             </button>
             <button
               type="button"
@@ -103,11 +113,16 @@ function LoginPage() {
           </div>
 
           {/* Context banner */}
-          <div className={`auth-context-banner ${isHost ? "auth-context-banner--host" : "auth-context-banner--guest"}`}>
+          <div
+            className={`auth-context-banner ${isHost ? "auth-context-banner--host" : "auth-context-banner--guest"}`}
+          >
             {isHost ? (
               <>
                 <strong>Signing in as a Host</strong>
-                <p>You'll be taken to your dashboard to manage listings and reservations.</p>
+                <p>
+                  You'll be taken to your dashboard to manage listings and
+                  reservations.
+                </p>
               </>
             ) : (
               <>
@@ -149,14 +164,17 @@ function LoginPage() {
               {loading
                 ? "Logging in…"
                 : isHost
-                ? "Log in to Host Dashboard"
-                : "Log in"}
+                  ? "Log in to Host Dashboard"
+                  : "Log in"}
             </button>
           </form>
 
           <p className="auth-switch">
             Don't have an account?{" "}
-            <Link to={isHost ? "/signup?role=host" : "/signup"} className="auth-link">
+            <Link
+              to={isHost ? "/signup?role=host" : "/signup"}
+              className="auth-link"
+            >
               Sign up as {isHost ? "a host" : "a guest"}
             </Link>
           </p>
