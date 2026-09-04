@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { apiFetch } from "../services/api";
 
@@ -34,26 +34,56 @@ const REVIEWS = [
     name: "Sarah M.",
     date: "October 2024",
     avatar: "S",
+    image: "https://i.pravatar.cc/96?u=sarah-m-airbnbsa",
     text: "Absolutely stunning place. The views were breathtaking and the host was incredibly attentive. Would definitely come back!",
   },
   {
     name: "James K.",
     date: "September 2024",
     avatar: "J",
+    image: "https://i.pravatar.cc/96?u=james-k-airbnbsa",
     text: "Perfect getaway. Clean, modern and exactly as described. Great location close to restaurants and shops.",
   },
   {
     name: "Lerato N.",
     date: "August 2024",
     avatar: "L",
+    image: "https://i.pravatar.cc/96?u=lerato-n-airbnbsa",
     text: "One of the best Airbnbs I've stayed in. Very spacious and comfortable. The check-in was seamless.",
   },
   {
     name: "Tom P.",
     date: "July 2024",
     avatar: "T",
+    image: "https://i.pravatar.cc/96?u=tom-p-airbnbsa",
     text: "Lovely property in a great area. The amenities were top-notch. Highly recommend for families.",
   },
+];
+
+const EXPLORE_CITIES = [
+  "Cape Town",
+  "Johannesburg",
+  "Durban",
+  "Pretoria",
+  "Stellenbosch",
+  "Knysna",
+  "Hermanus",
+  "Port Elizabeth",
+  "Franschhoek",
+  "Ballito",
+  "Clarens",
+  "Plettenberg Bay",
+];
+
+const UNIQUE_STAYS = [
+  "Beach House Rentals",
+  "Camper Rentals",
+  "Glamping Rentals",
+  "Treehouse Rentals",
+  "Cabin Rentals",
+  "Tiny House Rentals",
+  "Lakehouse Rentals",
+  "Mountain Chalet Rentals",
 ];
 
 function ListingDetailsPage() {
@@ -123,7 +153,12 @@ function ListingDetailsPage() {
       "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80",
     ],
-    host: { username: "Maria", email: "maria@example.com" },
+    host: {
+      username: "Maria",
+      email: "maria@example.com",
+      profilePicture: "https://i.pravatar.cc/128?u=maria-airbnbsa",
+      role: "host",
+    },
     description:
       "A stunning beachfront villa with panoramic ocean views. This spacious retreat offers the perfect blend of luxury and comfort, featuring modern amenities, a private pool, and direct beach access. Ideal for families or groups looking for an unforgettable South African experience.",
   };
@@ -135,6 +170,17 @@ function ListingDetailsPage() {
       ];
 
   const displayedImages = images;
+  const hostName = item.host?.username || "Maria";
+  const hostImage =
+    item.host?.profilePicture ||
+    `https://i.pravatar.cc/128?u=${encodeURIComponent(hostName)}`;
+  const hostJoinedDate = item.host?.createdAt
+    ? new Date(item.host.createdAt).toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      })
+    : "May 2021";
+  const hostIsSuperhost = item.host?.role !== "user";
 
   const maxGuests = Math.max(10, Number(item.guests) || 10);
 
@@ -415,8 +461,7 @@ function ListingDetailsPage() {
             <div className="detail-host">
               <div className="detail-host__info">
                 <h2 className="detail-host__title">
-                  {item.type || "Entire villa"} hosted by{" "}
-                  {item.host?.username || "Maria"}
+                  {item.type || "Entire villa"} hosted by {hostName}
                 </h2>
                 <p className="detail-host__meta">
                   {item.guests || 8} guests · {item.bedrooms || 4} bedrooms ·{" "}
@@ -424,10 +469,52 @@ function ListingDetailsPage() {
                 </p>
               </div>
               <div className="detail-host__avatar">
-                <div className="detail-host__avatar-circle">
-                  {(item.host?.username || "M")[0].toUpperCase()}
+                <img
+                  src={hostImage}
+                  alt={`${hostName} profile`}
+                  className="detail-host__avatar-circle detail-host__avatar-image"
+                />
+              </div>
+            </div>
+
+            <div className="host-profile">
+              <div className="host-profile__heading">
+                <img
+                  src={hostImage}
+                  alt={`${hostName} profile`}
+                  className="host-profile__avatar detail-host__avatar-circle detail-host__avatar-image"
+                />
+                <div>
+                  <h3>Hosted by {hostName}</h3>
+                  <p>Joined {hostJoinedDate}</p>
                 </div>
               </div>
+              <div className="host-profile__stats">
+                <span>★ {item.reviewCount || item.reviews || 12} Reviews</span>
+                <span>◉ Identity verified</span>
+                {hostIsSuperhost && <span>♧ Superhost</span>}
+              </div>
+              {hostIsSuperhost && (
+                <div className="host-profile__details">
+                  <strong>{hostName} is a Superhost</strong>
+                  <p>
+                    Superhosts are experienced, highly rated hosts who are
+                    committed to providing great stays for guests.
+                  </p>
+                  <p>Response rate: 100%</p>
+                  <p>Response time: within an hour</p>
+                </div>
+              )}
+              <button type="button" className="host-profile__contact">
+                Contact Host
+              </button>
+              <p className="host-profile__safety">
+                <span aria-hidden="true">♧</span>
+                <span>
+                  To protect your payment, never transfer money or communicate
+                  outside of the Airbnb website or app.
+                </span>
+              </p>
             </div>
 
             <hr className="detail-divider" />
@@ -437,7 +524,7 @@ function ListingDetailsPage() {
               {[
                 {
                   icon: "🏅",
-                  title: "Maria is a Superhost",
+                  title: `${hostName} is a Superhost`,
                   sub: "Superhosts are experienced, highly rated hosts.",
                 },
                 {
@@ -587,7 +674,11 @@ function ListingDetailsPage() {
                 {REVIEWS.map((r) => (
                   <div key={r.name} className="review-card">
                     <div className="review-card__top">
-                      <div className="review-card__avatar">{r.avatar}</div>
+                      <img
+                        src={r.image}
+                        alt={`${r.name} profile`}
+                        className="review-card__avatar review-card__avatar-image"
+                      />
                       <div>
                         <p className="review-card__name">{r.name}</p>
                         <p className="review-card__date">{r.date}</p>
@@ -714,6 +805,42 @@ function ListingDetailsPage() {
             </div>
           </div>
         </div>
+
+        <section className="detail-explore" aria-label="Explore more stays">
+          <h2>Explore other options in South Africa</h2>
+          <div className="detail-explore__grid">
+            {EXPLORE_CITIES.map((city) => (
+              <Link
+                key={city}
+                to={`/listings?location=${encodeURIComponent(city)}`}
+                className="detail-explore__link"
+              >
+                {city}
+              </Link>
+            ))}
+          </div>
+
+          <h3>Unique stays on Airbnb</h3>
+          <div className="detail-explore__grid">
+            {UNIQUE_STAYS.map((stay) => (
+              <Link
+                key={stay}
+                to={`/listings?search=${encodeURIComponent(stay)}`}
+                className="detail-explore__link"
+              >
+                {stay}
+              </Link>
+            ))}
+          </div>
+
+          <nav className="detail-breadcrumbs" aria-label="Breadcrumb">
+            <Link to="/">Airbnb</Link>
+            <span aria-hidden="true">›</span>
+            <Link to="/listings">South Africa</Link>
+            <span aria-hidden="true">›</span>
+            <span>{item.location || "Explore"}</span>
+          </nav>
+        </section>
       </div>
     </div>
   );

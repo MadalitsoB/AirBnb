@@ -27,6 +27,7 @@ export const apiFetch = async (endpoint, options = {}) => {
     if (error instanceof TypeError) {
       throw new Error(
         `Cannot connect to the API at ${API_BASE_URL}. Start the backend or check VITE_API_URL.`,
+        { cause: error },
       );
     }
     throw error;

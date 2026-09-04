@@ -113,7 +113,7 @@ exports.getAccommodations = async (req, res) => {
 
     const accommodations = await Accommodation.find(query).populate(
       "host",
-      "username email",
+      "username email role createdAt profilePicture",
     );
 
     res.status(200).json({
@@ -141,7 +141,7 @@ exports.getAccommodation = async (req, res) => {
     }
     const accommodation = await Accommodation.findById(req.params.id).populate(
       "host",
-      "username email",
+      "username email role createdAt profilePicture",
     );
 
     if (!accommodation) {
