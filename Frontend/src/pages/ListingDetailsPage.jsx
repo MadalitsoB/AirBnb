@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { apiFetch } from "../services/api";
 
 const AMENITIES = [
@@ -86,6 +87,139 @@ const UNIQUE_STAYS = [
   "Mountain Chalet Rentals",
 ];
 
+const CALENDAR_MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+const CALENDAR_DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+function getLocalDateString(date = new Date()) {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+function BookingCalendar({ checkIn, checkOut, onDateSelect }) {
+  const initialDate = checkIn ? new Date(`${checkIn}T00:00:00`) : new Date();
+  const [viewDate, setViewDate] = useState(
+    new Date(initialDate.getFullYear(), initialDate.getMonth(), 1),
+  );
+  const today = getLocalDateString();
+
+  const shiftMonth = (amount) => {
+    setViewDate(
+      (current) =>
+        new Date(current.getFullYear(), current.getMonth() + amount, 1),
+    );
+  };
+
+  const renderMonth = (monthOffset) => {
+    const monthDate = new Date(
+      viewDate.getFullYear(),
+      viewDate.getMonth() + monthOffset,
+      1,
+    );
+    const year = monthDate.getFullYear();
+    const month = monthDate.getMonth();
+    const firstDay = monthDate.getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const cells = [];
+
+    for (let index = 0; index < firstDay; index += 1) cells.push(null);
+    for (let day = 1; day <= daysInMonth; day += 1) cells.push(day);
+
+    return (
+      <div className="booking-calendar__month" key={`${year}-${month}`}>
+        <h4>
+          {CALENDAR_MONTHS[month]} {year}
+        </h4>
+        <div className="booking-calendar__grid">
+          {CALENDAR_DAYS.map((day) => (
+            <span key={day} className="booking-calendar__dow">
+              {day}
+            </span>
+          ))}
+          {cells.map((day, index) => {
+            if (!day) return <span key={`empty-${index}`} />;
+            const dateString = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+            const isCheckoutOnly = checkIn && dateString <= checkIn;
+            const isDisabled = dateString < today || isCheckoutOnly;
+            const isSelected =
+              dateString === checkIn || dateString === checkOut;
+            const isInRange =
+              checkIn &&
+              checkOut &&
+              dateString > checkIn &&
+              dateString < checkOut;
+
+            return (
+              <button
+                key={dateString}
+                type="button"
+                disabled={isDisabled}
+                className={`booking-calendar__day ${isSelected ? "booking-calendar__day--selected" : ""} ${isInRange ? "booking-calendar__day--range" : ""}`}
+                onClick={() => onDateSelect(dateString)}
+              >
+                {day}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="booking-calendar" aria-label="Choose your stay dates">
+      <div className="booking-calendar__header">
+        <button
+          type="button"
+          onClick={() => shiftMonth(-1)}
+          aria-label="Previous month"
+        >
+          ‹
+        </button>
+        <strong>
+          {checkIn && checkOut
+            ? `${Math.max(1, Math.ceil((new Date(checkOut) - new Date(checkIn)) / 86400000))} nights selected`
+            : checkIn
+              ? "Select your checkout date"
+              : "Select your dates"}
+        </strong>
+        <button
+          type="button"
+          onClick={() => shiftMonth(1)}
+          aria-label="Next month"
+        >
+          ›
+        </button>
+      </div>
+      <div className="booking-calendar__months">
+        {renderMonth(0)}
+        {renderMonth(1)}
+      </div>
+      <button
+        type="button"
+        className="booking-calendar__clear"
+        onClick={() => onDateSelect("")}
+        disabled={!checkIn && !checkOut}
+      >
+        Clear dates
+      </button>
+    </div>
+  );
+}
+
 function ListingDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -94,6 +228,7 @@ function ListingDetailsPage() {
   const [showAllPhotos, setShowAllPhotos] = useState(false);
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
+  const [bookingCalendarOpen, setBookingCalendarOpen] = useState(false);
   const [guests, setGuests] = useState(4);
   const [showAllAmenities, setShowAllAmenities] = useState(false);
   const [reservationMessage, setReservationMessage] = useState({
@@ -114,6 +249,19 @@ function ListingDetailsPage() {
   // Only the listing's own host can edit photos
   const currentUser = JSON.parse(localStorage.getItem("airbnbUser") || "null");
   const isOwner = currentUser && ["host", "admin"].includes(currentUser.role);
+
+  const handleCalendarDateSelect = (date) => {
+    if (!date) {
+      setCheckIn("");
+      setCheckOut("");
+    } else if (!checkIn || checkOut) {
+      setCheckIn(date);
+      setCheckOut("");
+    } else {
+      setCheckOut(date);
+      setBookingCalendarOpen(false);
+    }
+  };
 
   useEffect(() => {
     apiFetch(`/accommodations/${id}`)
@@ -719,7 +867,13 @@ function ListingDetailsPage() {
                   <input
                     type="date"
                     value={checkIn}
-                    onChange={(e) => setCheckIn(e.target.value)}
+                    min={getLocalDateString()}
+                    onFocus={() => setBookingCalendarOpen(true)}
+                    onChange={(e) => {
+                      setCheckIn(e.target.value);
+                      if (checkOut && e.target.value >= checkOut)
+                        setCheckOut("");
+                    }}
                   />
                 </div>
                 <div className="booking-date-cell booking-date-cell--right">
@@ -727,10 +881,20 @@ function ListingDetailsPage() {
                   <input
                     type="date"
                     value={checkOut}
+                    min={checkIn || getLocalDateString()}
+                    onFocus={() => setBookingCalendarOpen(true)}
                     onChange={(e) => setCheckOut(e.target.value)}
                   />
                 </div>
               </div>
+
+              {bookingCalendarOpen && (
+                <BookingCalendar
+                  checkIn={checkIn}
+                  checkOut={checkOut}
+                  onDateSelect={handleCalendarDateSelect}
+                />
+              )}
 
               <div className="booking-guests-cell">
                 <label>GUESTS</label>
@@ -805,43 +969,45 @@ function ListingDetailsPage() {
             </div>
           </div>
         </div>
-
-        <section className="detail-explore" aria-label="Explore more stays">
-          <h2>Explore other options in South Africa</h2>
-          <div className="detail-explore__grid">
-            {EXPLORE_CITIES.map((city) => (
-              <Link
-                key={city}
-                to={`/listings?location=${encodeURIComponent(city)}`}
-                className="detail-explore__link"
-              >
-                {city}
-              </Link>
-            ))}
-          </div>
-
-          <h3>Unique stays on Airbnb</h3>
-          <div className="detail-explore__grid">
-            {UNIQUE_STAYS.map((stay) => (
-              <Link
-                key={stay}
-                to={`/listings?search=${encodeURIComponent(stay)}`}
-                className="detail-explore__link"
-              >
-                {stay}
-              </Link>
-            ))}
-          </div>
-
-          <nav className="detail-breadcrumbs" aria-label="Breadcrumb">
-            <Link to="/">Airbnb</Link>
-            <span aria-hidden="true">›</span>
-            <Link to="/listings">South Africa</Link>
-            <span aria-hidden="true">›</span>
-            <span>{item.location || "Explore"}</span>
-          </nav>
-        </section>
       </div>
+
+      <section className="detail-explore" aria-label="Explore more stays">
+        <h2>Explore other options in South Africa</h2>
+        <div className="detail-explore__grid">
+          {EXPLORE_CITIES.map((city) => (
+            <Link
+              key={city}
+              to={`/listings?location=${encodeURIComponent(city)}`}
+              className="detail-explore__link"
+            >
+              {city}
+            </Link>
+          ))}
+        </div>
+
+        <h3>Unique stays on Airbnb</h3>
+        <div className="detail-explore__grid">
+          {UNIQUE_STAYS.map((stay) => (
+            <Link
+              key={stay}
+              to={`/listings?search=${encodeURIComponent(stay)}`}
+              className="detail-explore__link"
+            >
+              {stay}
+            </Link>
+          ))}
+        </div>
+
+        <nav className="detail-breadcrumbs" aria-label="Breadcrumb">
+          <Link to="/">Airbnb</Link>
+          <span aria-hidden="true">›</span>
+          <Link to="/listings">South Africa</Link>
+          <span aria-hidden="true">›</span>
+          <span>{item.location || "Explore"}</span>
+        </nav>
+      </section>
+
+      <Footer />
     </div>
   );
 }

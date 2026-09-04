@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { apiFetch } from "../services/api";
 
 const STATUS_LABELS = {
@@ -191,6 +192,8 @@ function MyReservationsPage() {
           </div>
         )}
       </main>
+
+      <Footer />
     </div>
   );
 }

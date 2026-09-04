@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { apiFetch } from "../services/api";
 
 const CATEGORIES = [
@@ -439,6 +440,8 @@ function ListingsPage() {
           </button>
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const destinations = [
   {
@@ -34,7 +35,7 @@ const hostArticles = [
     title: "It's easy to get started on Airbnb",
     subtitle: "Try hosting",
     to: "/signup",
-    img: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=600&q=80",
+    img: "https://i.pinimg.com/1200x/f8/3d/eb/f83deb836f8884d3c0929e165082cd1d.jpg",
     dark: true,
     section: "trip",
   },
@@ -42,7 +43,7 @@ const hostArticles = [
     title: "AirCover for Hosts",
     subtitle: "Learn more",
     to: "/listings?location=Johannesburg",
-    img: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
+    img: "https://i.pinimg.com/1200x/d4/6c/cb/d46ccb29cd540457fb4d521a2343fc49.jpg",
     dark: false,
     section: "home",
   },
@@ -63,41 +64,6 @@ const futureGetaways = {
     ["Franschhoek", "Farm stays", "Franschhoek"],
     ["Drakensberg", "Mountain cabins", "Drakensberg"],
     ["Tsitsikamma", "Forest getaways", "Tsitsikamma"],
-  ],
-};
-
-const footerLinks = {
-  Support: [
-    "Help Centre",
-    "AirCover",
-    "Anti-discrimination",
-    "Disability support",
-    "Cancellation options",
-    "Report neighbourhood concern",
-  ],
-  Hosting: [
-    "Airbnb your home",
-    "AirCover for Hosts",
-    "Explore hosting resources",
-    "Visit our community forum",
-    "How to host responsibly",
-    "Airbnb-friendly apartments",
-  ],
-  Airbnb: [
-    "Newsroom",
-    "Learn about new features",
-    "Letter from our founders",
-    "Careers",
-    "Investors",
-    "Gift cards",
-  ],
-  Discover: [
-    "Gift cards",
-    "Airbnb Luxe",
-    "Work stays",
-    "South Africa stays",
-    "Popular destinations",
-    "All stays",
   ],
 };
 
@@ -125,7 +91,7 @@ function Home() {
       {/* Hero */}
       <section className="hero">
         <img
-          src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80"
+          src="https://i.pinimg.com/736x/8f/c7/35/8fc735e6a6ab994055d94f5645f46807.jpg"
           alt="Beautiful home"
           className="hero__img"
         />
@@ -374,65 +340,12 @@ function Home() {
         </section>
 
         {/* Footer */}
-        <footer className="footer">
-          <div className="footer__top">
-            {Object.entries(footerLinks).map(([section, links]) => (
-              <div key={section} className="footer__col">
-                <h4 className="footer__col-title">{section}</h4>
-                <ul className="footer__list">
-                  {links.map((link) => (
-                    <li key={link}>
-                      <a href="#" className="footer__link">
-                        {link}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-          <div className="footer__bottom">
-            <span>© 2024 Airbnb, Inc.</span>
-            <div className="footer__bottom-links">
-              <a href="#">Privacy</a>
-              <a href="#">Terms</a>
-              <a href="#">Sitemap</a>
-              <a href="#">Company details</a>
-            </div>
-            <div className="footer__controls">
-              <label className="footer-select">
-                <span className="sr-only">Language</span>
-                <select
-                  value={language}
-                  onChange={(event) => setLanguage(event.target.value)}
-                >
-                  <option>English (ZA)</option>
-                  <option>English (US)</option>
-                  <option>isiZulu</option>
-                  <option>Français</option>
-                </select>
-              </label>
-              <label className="footer-select">
-                <span className="sr-only">Currency</span>
-                <select
-                  value={currency}
-                  onChange={(event) => setCurrency(event.target.value)}
-                >
-                  <option>R ZAR</option>
-                  <option>$ USD</option>
-                  <option>€ EUR</option>
-                  <option>£ GBP</option>
-                </select>
-              </label>
-              <a href="#" aria-label="Instagram">
-                Instagram
-              </a>
-              <a href="#" aria-label="Facebook">
-                Facebook
-              </a>
-            </div>
-          </div>
-        </footer>
+        <Footer
+          language={language}
+          currency={currency}
+          onLanguageChange={setLanguage}
+          onCurrencyChange={setCurrency}
+        />
       </div>
     </div>
   );
