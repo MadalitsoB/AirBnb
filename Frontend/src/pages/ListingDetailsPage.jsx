@@ -749,6 +749,17 @@ function ListingDetailsPage() {
 
             <hr className="detail-divider" />
 
+            <div className="detail-calendar">
+              <h3 className="detail-section-title">Availability</h3>
+              <BookingCalendar
+                checkIn={checkIn}
+                checkOut={checkOut}
+                onDateSelect={handleCalendarDateSelect}
+              />
+            </div>
+
+            <hr className="detail-divider" />
+
             {/* Policies and practical information */}
             <div className="detail-policies">
               <h3 className="detail-section-title">Things to know</h3>
@@ -775,23 +786,22 @@ function ListingDetailsPage() {
 
             {/* Reviews */}
             <div className="detail-reviews" id="reviews" tabIndex="-1">
-              <div className="detail-reviews__header">
+              <h3 className="detail-section-title detail-reviews__title">
                 <svg
                   viewBox="0 0 16 16"
                   width="18"
                   height="18"
                   fill="currentColor"
+                  aria-hidden="true"
                 >
                   <path d="M8 1l1.85 3.75L14 5.5l-3 2.92.71 4.13L8 10.4l-3.71 1.95.71-4.13L2 5.5l4.15-.75L8 1z" />
                 </svg>
-                <span className="detail-reviews__score">
-                  {item.rating || 4.97}
-                </span>
+                <span>{item.rating || 4.97}</span>
                 <span className="detail-reviews__dot">·</span>
                 <span className="detail-reviews__count">
                   {item.reviewCount || 211} reviews
                 </span>
-              </div>
+              </h3>
 
               {/* Rating breakdown */}
               <div className="reviews-breakdown">
