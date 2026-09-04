@@ -17,10 +17,20 @@ export const apiFetch = async (endpoint, options = {}) => {
     ? endpoint
     : `${API_BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  let response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+    });
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error(
+        `Cannot connect to the API at ${API_BASE_URL}. Start the backend or check VITE_API_URL.`,
+      );
+    }
+    throw error;
+  }
 
   const contentType = response.headers.get("content-type") || "";
   const data = contentType.includes("application/json")
