@@ -39,7 +39,14 @@ function SignupPage() {
       // Host → dashboard, Guest → home page
       navigate(data.user?.role === "host" ? "/host" : "/");
     } catch (error) {
-      setMessage(error.message || "Signup failed. Please try again.");
+      const raw = error.message || "";
+      if (raw.toLowerCase().includes("offline") || raw.toLowerCase().includes("system")) {
+        setMessage("System offline. Please try again later.");
+      } else if (raw.toLowerCase().includes("exists") || raw.toLowerCase().includes("already")) {
+        setMessage("An account with that email or username already exists.");
+      } else {
+        setMessage("Could not create your account. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

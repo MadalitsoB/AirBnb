@@ -35,20 +35,16 @@ function LoginPage() {
 
       const isHost = ["host", "admin"].includes(data.user?.role);
 
-      // Wrong tab — tell them clearly, don't proceed
+      // Wrong tab — show generic "account not found", don't reveal role info
       if (mode === "host" && !isHost) {
-        setMessage(
-          "This is a guest account. Please use the Guest tab to log in, or sign up as a host.",
-        );
+        setMessage("Account not found. Please check your details or sign up.");
         localStorage.removeItem("airbnbToken");
         localStorage.removeItem("airbnbUser");
         return;
       }
 
       if (mode === "guest" && isHost) {
-        setMessage(
-          "This is a host account. Please use the Host tab to log in.",
-        );
+        setMessage("Account not found. Please check your details or sign up.");
         localStorage.removeItem("airbnbToken");
         localStorage.removeItem("airbnbUser");
         return;
@@ -57,9 +53,15 @@ function LoginPage() {
       // Correct tab — redirect to the right place
       navigate(isHost ? "/host" : "/");
     } catch (error) {
-      setMessage(
-        error.message || "Login failed. Check your email and password.",
-      );
+      // Sanitize — never show raw API or network errors
+      const raw = error.message || "";
+      if (raw.toLowerCase().includes("offline") || raw.toLowerCase().includes("system")) {
+        setMessage("System offline. Please try again later.");
+      } else if (raw.toLowerCase().includes("invalid") || raw.toLowerCase().includes("password") || raw.toLowerCase().includes("email")) {
+        setMessage("Incorrect email or password. Please try again.");
+      } else {
+        setMessage("Something went wrong. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
