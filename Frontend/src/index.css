@@ -4685,3 +4685,78 @@ select {
 .page-toast__close:hover {
   color: white;
 }
+
+/* ─── Redesigned login modal ─────────────────────────────────── */
+.auth-modal--centered {
+  max-width: 440px;
+}
+
+.auth-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+/* Single full-width input (not stacked group) */
+.auth-input-single {
+  width: 100%;
+  padding: 16px 14px;
+  font-size: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  outline: none;
+  color: var(--text);
+  background: white;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  font-family: inherit;
+  display: block;
+}
+.auth-input-single:focus {
+  border-color: var(--text);
+  box-shadow: 0 0 0 3px rgba(34,34,34,0.08);
+}
+
+/* Social icon-only buttons */
+.auth-social-icons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.auth-social-icon-btn {
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+.auth-social-icon-btn:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+/* Step 2 — email recap row */
+.auth-step2-email {
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auth-step2-change {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
