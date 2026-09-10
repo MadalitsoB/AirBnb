@@ -4760,3 +4760,273 @@ select {
   cursor: pointer;
   padding: 0;
 }
+
+/* ─── Become a host button — black & white edgy ─────────────── */
+.hosting-banner__btn--host {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #111;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 14px 28px;
+  border-radius: 4px; /* sharper corners — edgy not pill */
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 2px solid #111;
+  transition: background 0.2s, color 0.2s, transform 0.15s;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.18);
+}
+.hosting-banner__btn--host:hover {
+  background: white;
+  color: #111;
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 rgba(0,0,0,0.18);
+}
+
+/* ─── Host auth modal — split black/white panel ──────────────── */
+.host-auth-modal {
+  position: relative;
+  background: white;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 780px;
+  min-height: 480px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.28);
+  animation: modalPop 0.22s cubic-bezier(0.34,1.4,0.64,1);
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Close button — top right corner */
+.host-auth-modal__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.host-auth-modal__close:hover { background: rgba(255,255,255,0.25); }
+
+/* Left — black branding panel */
+.host-auth-modal__left {
+  background: #111;
+  padding: 40px 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 480px;
+}
+
+.host-auth-modal__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.host-auth-modal__left-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 8px;
+}
+
+.host-auth-modal__eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 12px;
+}
+
+.host-auth-modal__headline {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: white;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  white-space: pre-line;
+  margin-bottom: 16px;
+}
+
+.host-auth-modal__sub {
+  font-size: 0.875rem;
+  color: rgba(255,255,255,0.55);
+  line-height: 1.6;
+  max-width: 240px;
+}
+
+/* Right — white form panel */
+.host-auth-modal__right {
+  padding: 40px 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0;
+}
+
+.host-auth-modal__form-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 24px;
+  letter-spacing: -0.02em;
+}
+
+/* Form elements */
+.host-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.host-auth-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #111;
+  background: white;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.host-auth-input:focus {
+  border-color: #111;
+  box-shadow: 0 0 0 3px rgba(17,17,17,0.08);
+}
+
+.host-auth-btn {
+  width: 100%;
+  padding: 14px;
+  background: #111;
+  color: white;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  border: 2px solid #111;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+  margin-top: 4px;
+}
+.host-auth-btn:hover:not(:disabled) {
+  background: white;
+  color: #111;
+}
+.host-auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.host-auth-error {
+  font-size: 0.82rem;
+  color: #c0003c;
+  font-weight: 600;
+}
+
+.host-auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  font-size: 0.8rem;
+  color: #aaa;
+}
+.host-auth-divider::before,
+.host-auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e5e5e5;
+}
+
+.host-auth-social {
+  display: flex;
+  gap: 10px;
+}
+
+.host-auth-social-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 8px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #111;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.host-auth-social-btn:hover { border-color: #111; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+.host-auth-email-recap {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.host-auth-email-recap button {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #111;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.host-auth-terms {
+  font-size: 0.75rem;
+  color: #888;
+  line-height: 1.5;
+}
+.host-auth-terms a {
+  color: #111;
+  text-decoration: underline;
+}
+
+/* Responsive — stack on mobile */
+@media (max-width: 640px) {
+  .host-auth-modal {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+    min-height: unset;
+  }
+  .host-auth-modal__left {
+    min-height: 180px;
+    padding: 28px 24px;
+  }
+  .host-auth-modal__headline { font-size: 1.6rem; }
+  .host-auth-modal__sub { display: none; }
+  .host-auth-modal__right { padding: 28px 24px; }
+  .host-auth-modal__close { color: white; }
+}

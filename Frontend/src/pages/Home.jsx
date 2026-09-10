@@ -314,8 +314,8 @@ function Home() {
           <div className="hosting-banner">
             <div className="hosting-banner__text">
               <h2>Questions about hosting?</h2>
-              <Link to="/login?role=host" className="hosting-banner__btn">
-                Become a host
+              <Link to="/login?role=host" className="hosting-banner__btn hosting-banner__btn--host">
+                Become a host ↗
               </Link>
             </div>
             <img
